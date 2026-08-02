@@ -72,37 +72,39 @@
 
     var moves = {
       chat: function (p) {                          // drive through a letterform
-        var z = ease(span(p,.34,1)), c = ease(span(p,.34,.6));
+        // Drift starts with the zoom, not before it — a sideways slide with
+        // no scale behind it reads as the text wandering off on its own.
+        var z = ease(span(p,.22,1)), c = ease(span(p,.22,.44));
         set(chatLine,'--zoom',(1 + z*22).toFixed(3));
         set(chatLine,'--tx',(drift.x*c).toFixed(1)+'px');
         set(chatLine,'--ty',(drift.y*c).toFixed(1)+'px');
       },
       see: function (p, s) {                        // an aperture opens
-        set($('.lens',s),'--slit',(50 - ease(span(p,.04,.36))*50).toFixed(2)+'%');
+        set($('.lens',s),'--slit',(50 - ease(span(p,.02,.26))*50).toFixed(2)+'%');
       },
       hear: function (p, s) {                       // a ripple spreads outward
-        set($('.ripple',s),'--r',(ease(span(p,.02,.4))*82).toFixed(1)+'%');
+        set($('.ripple',s),'--r',(ease(span(p,.01,.26))*82).toFixed(1)+'%');
         [].forEach.call(s.querySelectorAll('.ring'), function (r, i) {
-          var t = span(p, .02 + i*.06, .34 + i*.06);
+          var t = span(p, .01 + i*.05, .26 + i*.05);
           set(r,'--rs',(t*3.4).toFixed(2));
           set(r,'--ro',(Math.sin(t*Math.PI)*.5).toFixed(2));
         });
       },
       watch: function (p, s) {                      // frames flick past, one settles
         var strip = $('.strip',s), w = strip.firstElementChild.offsetWidth + 14;
-        var t = ease(span(p,.02,.4));
+        var t = ease(span(p,.01,.26));
         set(strip,'--sx',((1-t)*w*1.9).toFixed(1)+'px');
         set(strip,'--so',(.1 + t*.28).toFixed(2));
       },
       read: function (p, s) {                       // lines reveal down the page
-        var t = ease(span(p,.04,.46));
+        var t = ease(span(p,.02,.32));
         set($('.phone',s),'--unread',((1-t)*100).toFixed(1)+'%');
         var rule = $('.rule',s);
         set(rule,'--ruleY',(t*100).toFixed(1)+'%');
         set(rule,'--ruleO',(Math.sin(clamp(t,0,1)*Math.PI)*.9).toFixed(2));
       },
       search: function (p, s) {                     // a lens sweeps, then opens out
-        var t = span(p,.02,.5);
+        var t = span(p,.01,.36);
         // Hold the lens small while it travels, or it covers the viewport
         // before the sweep is legible; only widen once it has crossed.
         var sweep = ease(clamp(t/.72,0,1)), open = ease(clamp((t-.72)/.28,0,1));
@@ -114,9 +116,9 @@
         set(halo,'--haloO',((1-open)*.75).toFixed(2));
       },
       locate: function (p, s) {                     // drops in and settles on a pin
-        var t = outc(span(p,.02,.36));
+        var t = outc(span(p,.01,.24));
         set($('.drop',s),'--dy',((1-t)*-55).toFixed(1)+'vh');
-        var k = span(p,.3,.5), q = span(p,.32,.62);
+        var k = span(p,.20,.34), q = span(p,.22,.46);
         var pin = $('.pin',s), pulse = $('.pulse',s);
         set(pin,'--ps',k.toFixed(2)); set(pin,'--po',(k*.9).toFixed(2));
         set(pulse,'--pulse',(q*2.6).toFixed(2));
@@ -126,18 +128,18 @@
         // Deliberately a count rather than a digit scramble: scroll can stop
         // anywhere, and a frozen scramble reads as a wrong answer where a
         // frozen count still reads as working.
-        $('#calcNum', s).textContent = String(Math.round(ease(span(p,.04,.5)) * 4410));
+        $('#calcNum', s).textContent = String(Math.round(ease(span(p,.02,.34)) * 4410));
       },
       remember: function (p, s) {                   // earlier screens recede behind
-        set($('.deck',s),'--spread', ease(span(p,.04,.42)).toFixed(3));
+        set($('.deck',s),'--spread', ease(span(p,.02,.28)).toFixed(3));
       },
       think: function (p, s) {                      // unfolds from a vertical seam
-        var t = ease(span(p,.06,.44));
+        var t = ease(span(p,.02,.30));
         set($('.fold',s),'--seam',((1-t)*50).toFixed(2)+'%');
         set($('.seamline',s),'--seamO',(Math.sin(clamp(t,0,1)*Math.PI)*.9).toFixed(2));
       },
       know: function (p, s) {                       // blooms from a point of light
-        var b = span(p,.02,.3), f = span(p,.22,.5);
+        var b = span(p,.01,.20), f = span(p,.15,.34);
         set($('.bloom',s),'--bs',(1 + b*b*30).toFixed(2));
         set($('.bloom',s),'--bo',Math.sin(b*Math.PI).toFixed(2));
         set($('.final',s),'--fo', f.toFixed(2));
@@ -156,8 +158,13 @@
         var runway = r.height - vh;
         var p = runway > 0 ? clamp(-r.top / runway, 0, 1) : 0;
         if (s.move) s.move(p, s.el);
-        if (s.fade) s.fade.style.opacity = span(p,.84,.98).toFixed(3);
-        if (s.cap)  s.cap.style.opacity  = (span(p,.14,.32) * (1 - span(p,.7,.86))).toFixed(3);
+        // Black is only the seam between two steps, so it arrives late and
+        // briefly. Ramping from .84 left a long dead stretch at full black
+        // before the next step had anything to show.
+        if (s.fade) s.fade.style.opacity = span(p,.93,1).toFixed(3);
+        // Captions hold most of the step rather than fading a third of the
+        // way through, which is what made the middle read as empty.
+        if (s.cap)  s.cap.style.opacity  = (span(p,.10,.24) * (1 - span(p,.84,.95))).toFixed(3);
       }
     }
 
