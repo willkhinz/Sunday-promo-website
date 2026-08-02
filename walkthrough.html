@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sunday — walkthrough prototype</title>
+<meta name="theme-color" content="#000000">
+<meta name="robots" content="noindex">
+<style>
+:root {
+  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --fg-2: rgba(255,255,255,.58);
+  --fg-3: rgba(255,255,255,.40);
+  --line: rgba(255,255,255,.11);
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: #000;
+  color: #fff;
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+h1, h2, h3 { margin: 0; font-weight: 700; letter-spacing: -.035em; line-height: 1.05; }
+p { margin: 0; }
+
+/* ── walkthrough shell ─────────────────────────────────────── */
+
+.step { position: relative; }
+
+/* The tall outer box is the scroll runway; the sticky inner box is what
+   you actually see. Progress through the runway drives every transform. */
+.stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+
+.verb {
+  position: absolute;
+  top: max(28px, env(safe-area-inset-top));
+  left: 22px;
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  z-index: 5;
+}
+
+.blackout {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.phone {
+  width: min(66vw, 240px);
+  aspect-ratio: 640 / 1391;
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,.22);
+  overflow: hidden;
+  background: #000;
+  box-shadow: 0 30px 60px -20px rgba(0,0,0,.95);
+}
+.phone img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+
+.caption {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  bottom: max(34px, env(safe-area-inset-bottom));
+  text-align: center;
+  z-index: 5;
+}
+.caption h2 { font-size: clamp(1.9rem, 8vw, 2.6rem); }
+.caption p { margin-top: 10px; color: var(--fg-2); font-size: .95rem; line-height: 1.5; }
+
+/* ── step 1 · type, zoomed through ─────────────────────────── */
+
+.type-wrap { padding-inline: 22px; width: 100%; }
+
+.line {
+  font-size: clamp(2rem, 9vw, 3.4rem);
+  font-weight: 700;
+  letter-spacing: -.04em;
+  line-height: 1.12;
+  text-align: center;
+  transform: translate(var(--tx, 0px), var(--ty, 0px)) scale(var(--zoom, 1));
+  transform-origin: var(--ox, 50%) var(--oy, 50%);
+  will-change: transform;
+}
+.line .q { color: var(--fg-3); display: block; font-size: .42em; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 18px; font-weight: 600; }
+
+/* ── step 2 · aperture ─────────────────────────────────────── */
+
+.aperture {
+  clip-path: inset(var(--slit, 50%) 0 var(--slit, 50%) 0);
+  transform: scale(var(--shrink, 1));
+  will-change: clip-path, transform;
+}
+
+/* ── step 3 · grown from a dot ─────────────────────────────── */
+
+.iris {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: #000;
+  clip-path: circle(var(--iris, 0%) at 50% 50%);
+  will-change: clip-path;
+}
+
+/* ── scroll hint ───────────────────────────────────────────── */
+
+.hint {
+  position: fixed;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  left: 0; right: 0;
+  text-align: center;
+  font-size: .74rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  z-index: 20;
+  transition: opacity .4s ease;
+}
+
+.intro, .outro {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  text-align: center;
+}
+.intro h1 { font-size: clamp(2.1rem, 9vw, 3.2rem); }
+.intro p, .outro p { margin-top: 16px; color: var(--fg-2); max-width: 34ch; margin-inline: auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  /* No scrubbing: every step becomes a plain, fully-visible panel. */
+  .step { height: auto !important; }
+  .stage { position: static; height: auto; padding-block: 64px; gap: 26px; }
+  .line { transform: none !important; }
+  .aperture { clip-path: none !important; transform: none !important; }
+  .iris { position: static; clip-path: none !important; }
+  .blackout { display: none; }
+  .hint { display: none; }
+}
+</style>
+</head>
+<body>
+
+<section class="intro">
+  <div>
+    <h1>Scroll.</h1>
+    <p>Prototype of the action walkthrough — three steps, three different transitions.</p>
+  </div>
+</section>
+
+<!-- step 1 — Chat, exits by zooming through a letter -->
+<section class="step" id="s1" style="height:320vh">
+  <div class="stage">
+    <p class="verb">Chat</p>
+    <div class="type-wrap">
+      <p class="line" id="line1">
+        <span class="q">You asked</span>
+        explain why my s<span id="zoomo">o</span>urdough didn't rise
+      </p>
+    </div>
+    <div class="blackout" id="fade1" style="opacity:0"></div>
+  </div>
+</section>
+
+<!-- step 2 — See, enters through an aperture, exits by collapsing -->
+<section class="step" id="s2" style="height:320vh">
+  <div class="stage">
+    <p class="verb">See</p>
+    <div class="phone aperture" id="ap2">
+      <img src="assets/img/see.webp" alt="Sunday describing a cross-hatched drawing.">
+    </div>
+    <div class="caption" id="cap2">
+      <h2>See</h2>
+      <p>Show it a photo. It tells you what's actually in there.</p>
+    </div>
+    <div class="blackout" id="fade2" style="opacity:0"></div>
+  </div>
+</section>
+
+<!-- step 3 — Hear, grows from a dot to fill the screen -->
+<section class="step" id="s3" style="height:320vh">
+  <div class="stage">
+    <div class="iris" id="iris3">
+      <p class="verb">Hear</p>
+      <div class="phone">
+        <img src="assets/img/hear.webp" alt="Sunday summarising a song from audio.">
+      </div>
+      <div class="caption">
+        <h2>Hear</h2>
+        <p>Play it a recording and ask what it means.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="outro">
+  <div>
+    <h2>…and so on, through all eleven.</h2>
+    <p>Each verb gets its own screen, and no two hand off the same way.</p>
+  </div>
+</section>
+
+<p class="hint" id="hint">Scroll</p>
+
+<script>
+(function () {
+  'use strict';
+
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  var clamp = function (v, a, b) { return v < a ? a : v > b ? b : v; };
+  // Ease so the middle of each transition moves fastest, which reads as
+  // deliberate rather than linear-and-mechanical.
+  var ease = function (t) { return t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2; };
+  // Remap a sub-range of a step's progress to 0..1.
+  var span = function (p, a, b) { return clamp((p - a) / (b - a), 0, 1); };
+
+  var steps = [].slice.call(document.querySelectorAll('.step'));
+  var line1 = document.getElementById('line1');
+  var zoomo = document.getElementById('zoomo');
+  var fade1 = document.getElementById('fade1');
+  var ap2   = document.getElementById('ap2');
+  var cap2  = document.getElementById('cap2');
+  var fade2 = document.getElementById('fade2');
+  var iris3 = document.getElementById('iris3');
+  var hint  = document.getElementById('hint');
+
+  /* Put the zoom origin on the counter of the "o" so the screen fills with
+     the inside of the letter rather than its stroke. */
+  var drift = { x: 0, y: 0 };
+
+  function setOrigin() {
+    // Measure unscaled, then hand the transform back to the stylesheet —
+    // leaving an inline value set would outrank the scale() rule.
+    line1.style.setProperty('--zoom', '1');
+    line1.style.setProperty('--tx', '0px');
+    line1.style.setProperty('--ty', '0px');
+
+    var lr = line1.getBoundingClientRect();
+    var or_ = zoomo.getBoundingClientRect();
+    var ox = ((or_.left + or_.width / 2) - lr.left) / lr.width * 100;
+    var oy = ((or_.top + or_.height * 0.52) - lr.top) / lr.height * 100;
+    line1.style.setProperty('--ox', ox.toFixed(2) + '%');
+    line1.style.setProperty('--oy', oy.toFixed(2) + '%');
+
+    // Scaling about the letter pins it wherever it happens to sit, so the
+    // zoom heads into a corner. Measure how far it is from the middle of
+    // the sticky stage and drift it to centre as the scale ramps.
+    var stage = line1.closest('.stage').getBoundingClientRect();
+    drift.x = (stage.left + stage.width / 2) - (or_.left + or_.width / 2);
+    drift.y = (stage.top + stage.height / 2) - (or_.top + or_.height * 0.52);
+  }
+
+  function progress(step) {
+    var r = step.getBoundingClientRect();
+    var runway = r.height - window.innerHeight;
+    return runway > 0 ? clamp(-r.top / runway, 0, 1) : 0;
+  }
+
+  function render() {
+    var p1 = progress(steps[0]);
+    var p2 = progress(steps[1]);
+    var p3 = progress(steps[2]);
+
+    // 1 — hold, then drive into the letter. Scale is capped well short of
+    // what would fill the screen; the blackout finishes the move, which
+    // keeps the text from re-rasterising at an absurd size.
+    var z = ease(span(p1, .35, 1));
+    line1.style.setProperty('--zoom', (1 + z * 22).toFixed(3));
+    // Centre the letter early, so the drift is finished before the scale
+    // gets big enough for the movement to read as a lurch.
+    var c = ease(span(p1, .35, .62));
+    line1.style.setProperty('--tx', (drift.x * c).toFixed(2) + 'px');
+    line1.style.setProperty('--ty', (drift.y * c).toFixed(2) + 'px');
+    fade1.style.opacity = span(p1, .82, .97).toFixed(3);
+
+    // 2 — a slit opens vertically, holds, then the whole frame collapses.
+    var open = ease(span(p2, .04, .34));
+    ap2.style.setProperty('--slit', (50 - open * 50).toFixed(2) + '%');
+    var out = ease(span(p2, .72, 1));
+    ap2.style.setProperty('--shrink', (1 - out * .88).toFixed(3));
+    cap2.style.opacity = (span(p2, .12, .3) * (1 - span(p2, .68, .85))).toFixed(3);
+    fade2.style.opacity = span(p2, .88, 1).toFixed(3);
+
+    // 3 — grows from a dot until it covers the screen.
+    var iris = ease(span(p3, .02, .4));
+    iris3.style.setProperty('--iris', (iris * 82).toFixed(2) + '%');
+
+    hint.style.opacity = window.scrollY > window.innerHeight * .6 ? 0 : 1;
+  }
+
+  var ticking = false;
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function () { render(); ticking = false; });
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', function () { setOrigin(); render(); }, { passive: true });
+  window.addEventListener('load', function () { setOrigin(); render(); });
+  setOrigin();
+  render();
+}());
+</script>
+</body>
+</html>
