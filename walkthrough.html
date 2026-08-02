@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sunday — walkthrough prototype</title>
+<meta name="theme-color" content="#000000">
+<meta name="robots" content="noindex">
+<style>
+:root {
+  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --fg-2: rgba(255,255,255,.58);
+  --fg-3: rgba(255,255,255,.40);
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: #000; color: #fff;
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+h1, h2, h3 { margin: 0; font-weight: 700; letter-spacing: -.035em; line-height: 1.05; }
+p { margin: 0; }
+
+/* ── shell ─────────────────────────────────────────────────── */
+
+.step { position: relative; height: 230vh; }
+
+/* Tall runway, sticky viewport. Progress through the runway drives
+   every transform, so the motion is scrubbed rather than triggered. */
+.stage {
+  position: sticky; top: 0;
+  height: 100vh; height: 100svh;
+  overflow: hidden;
+  display: grid; place-items: center;
+}
+
+.verb {
+  position: absolute; top: max(26px, env(safe-area-inset-top)); left: 22px;
+  font-size: .7rem; font-weight: 600; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--fg-3); z-index: 6;
+}
+
+.blackout { position: absolute; inset: 0; background: #000; pointer-events: none; z-index: 7; }
+
+.phone {
+  width: min(62vw, 226px); aspect-ratio: 640 / 1391;
+  border-radius: 22px; border: 1px solid rgba(255,255,255,.22);
+  overflow: hidden; background: #000;
+  box-shadow: 0 28px 56px -20px rgba(0,0,0,.95);
+}
+.phone img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+
+.caption {
+  position: absolute; left: 22px; right: 22px;
+  bottom: max(32px, env(safe-area-inset-bottom));
+  text-align: center; z-index: 6;
+}
+.caption h2 { font-size: clamp(1.8rem, 7.5vw, 2.4rem); }
+.caption p { margin-top: 9px; color: var(--fg-2); font-size: .92rem; line-height: 1.5; }
+
+/* Type-led steps, for the actions with no screenshot of their own. */
+.big {
+  padding-inline: 24px; text-align: center;
+  font-size: clamp(1.9rem, 8.5vw, 3rem); font-weight: 700; letter-spacing: -.04em;
+  line-height: 1.14;
+}
+.big .kicker {
+  display: block; font-size: .34em; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--fg-3); margin-bottom: 16px; font-weight: 600;
+}
+
+/* ── 1 · Chat — drive through the counter of a letter ──────── */
+#chat .line {
+  transform: translate(var(--tx,0px), var(--ty,0px)) scale(var(--zoom,1));
+  transform-origin: var(--ox,50%) var(--oy,50%);
+  will-change: transform;
+}
+
+/* ── 2 · See — an aperture opens ───────────────────────────── */
+#see .lens { clip-path: inset(var(--slit,50%) 0 var(--slit,50%) 0); will-change: clip-path; }
+
+/* ── 3 · Hear — a ripple spreads from a point ──────────────── */
+#hear .ripple {
+  position: absolute; inset: 0; display: grid; place-items: center; background: #000;
+  clip-path: circle(var(--r,0%) at 50% 50%); will-change: clip-path;
+}
+#hear .rings { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
+#hear .ring {
+  position: absolute; border: 1px solid rgba(255,255,255,.5); border-radius: 50%;
+  width: 40vmin; height: 40vmin;
+  transform: scale(var(--rs,0)); opacity: var(--ro,0); will-change: transform, opacity;
+}
+
+/* ── 4 · Watch — frames flick past, one settles ────────────── */
+#watch .strip {
+  display: flex; gap: 14px; align-items: center;
+  transform: translateX(var(--sx,0px)); will-change: transform;
+}
+#watch .strip .phone { flex: none; opacity: var(--so,.35); }
+#watch .strip .phone.is-hero { opacity: 1; }
+
+/* ── 5 · Read — lines reveal down the page ─────────────────── */
+#read .sheet { position: relative; }
+#read .sheet .phone { clip-path: inset(0 0 var(--unread,100%) 0); will-change: clip-path; }
+#read .rule {
+  position: absolute; left: -8%; right: -8%; height: 1px;
+  background: rgba(255,255,255,.7);
+  top: var(--ruleY, 0%); opacity: var(--ruleO, 0);
+}
+
+/* ── 6 · Search — a lens sweeps across and settles ─────────── */
+#search .scan {
+  -webkit-mask-image: radial-gradient(circle var(--lens,0px) at var(--lx,50%) 50%, #000 98%, transparent 100%);
+  mask-image: radial-gradient(circle var(--lens,0px) at var(--lx,50%) 50%, #000 98%, transparent 100%);
+}
+#search .halo {
+  position: absolute; width: calc(var(--lens,0px) * 2); height: calc(var(--lens,0px) * 2);
+  left: var(--lx,50%); top: 50%; translate: -50% -50%;
+  border: 1px solid rgba(255,255,255,.35); border-radius: 50%;
+  opacity: var(--haloO,0); pointer-events: none;
+}
+
+/* ── 7 · Locate — drops in from above and settles ──────────── */
+#locate .drop { transform: translateY(var(--dy,-60vh)); will-change: transform; }
+#locate .pin {
+  position: absolute; left: 50%; top: 50%; translate: -50% -50%;
+  width: 16px; height: 16px; border-radius: 50%; background: #fff;
+  transform: scale(var(--ps,0)); opacity: var(--po,0);
+}
+#locate .pulse {
+  position: absolute; left: 50%; top: 50%; translate: -50% -50%;
+  width: 30vmin; height: 30vmin; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.45);
+  transform: scale(var(--pulse,0)); opacity: var(--pulseO,0);
+}
+
+/* ── 8 · Calculate — digits scramble, then resolve ─────────── */
+#calc .readout {
+  font-variant-numeric: tabular-nums; font-size: clamp(3rem, 17vw, 6rem);
+  font-weight: 700; letter-spacing: -.05em;
+}
+#calc .unit { font-size: .3em; color: var(--fg-3); letter-spacing: .04em; margin-left: .18em; }
+
+/* ── 9 · Remember — earlier screens recede behind ──────────── */
+#remember .deck { position: relative; width: min(62vw,226px); aspect-ratio: 640/1391; }
+#remember .deck .phone { position: absolute; inset: 0; width: 100%; }
+#remember .deck .phone:nth-child(1) { transform: translateY(calc(var(--spread,0) * -46px)) scale(calc(1 - var(--spread,0) * .18)); opacity: calc(1 - var(--spread,0) * .55); }
+#remember .deck .phone:nth-child(2) { transform: translateY(calc(var(--spread,0) * -23px)) scale(calc(1 - var(--spread,0) * .09)); opacity: calc(1 - var(--spread,0) * .3); }
+#remember .deck .phone:nth-child(3) { transform: none; }
+
+/* ── 10 · Think — unfolds outward from a vertical seam ─────── */
+#think .fold { clip-path: inset(0 var(--seam,50%) 0 var(--seam,50%)); will-change: clip-path; }
+#think .seamline {
+  position: absolute; top: 12%; bottom: 12%; left: 50%; width: 1px;
+  background: rgba(255,255,255,.75); opacity: var(--seamO,0);
+}
+
+/* ── 11 · Know — blooms from a single point ────────────────── */
+#know .bloom {
+  position: absolute; left: 50%; top: 50%; translate: -50% -50%;
+  width: 8px; height: 8px; border-radius: 50%; background: #fff;
+  transform: scale(var(--bs,1)); opacity: var(--bo,0);
+  box-shadow: 0 0 60px 20px rgba(255,255,255,.35);
+}
+#know .final { opacity: var(--fo,0); }
+
+/* ── ends ──────────────────────────────────────────────────── */
+
+.intro, .outro { min-height: 100svh; display: grid; place-items: center; padding: 24px; text-align: center; }
+.intro h1 { font-size: clamp(2.1rem, 9vw, 3.2rem); }
+.intro p, .outro p { margin-top: 16px; color: var(--fg-2); max-width: 34ch; margin-inline: auto; }
+.outro h2 { font-size: clamp(1.9rem, 8vw, 2.8rem); }
+
+.hint {
+  position: fixed; bottom: max(18px, env(safe-area-inset-bottom)); left: 0; right: 0;
+  text-align: center; font-size: .72rem; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--fg-3); z-index: 20; transition: opacity .4s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step { height: auto !important; }
+  .stage { position: static; height: auto; padding-block: 60px; gap: 24px; }
+  .stage > * { transform: none !important; clip-path: none !important; opacity: 1 !important;
+               -webkit-mask-image: none !important; mask-image: none !important; }
+  .blackout, .hint, .ring, .pin, .pulse, .halo, .seamline, .rule, .bloom { display: none !important; }
+  #watch .strip { flex-direction: column; }
+  #remember .deck { height: auto; aspect-ratio: auto; }
+  #remember .deck .phone { position: static; margin-inline: auto; }
+}
+</style>
+</head>
+<body>
+
+<section class="intro">
+  <div>
+    <h1>Eleven things it does.</h1>
+    <p>No two arrive the same way. Scroll.</p>
+  </div>
+</section>
+
+<!-- 1 · Chat -->
+<section class="step" id="chat">
+  <div class="stage">
+    <p class="verb">Chat</p>
+    <p class="big line" id="chatLine">
+      <span class="kicker">You asked</span>
+      explain why my s<span id="chatO">o</span>urdough didn't rise
+    </p>
+    <div class="blackout" data-fade style="opacity:0"></div>
+  </div>
+</section>
+
+<!-- 2 · See -->
+<section class="step" id="see">
+  <div class="stage">
+    <p class="verb">See</p>
+    <div class="phone lens"><img src="assets/img/see.webp" alt="Sunday describing a cross-hatched drawing."></div>
+    <div class="caption" data-cap><h2>See</h2><p>Show it a photo. It tells you what's actually in there.</p></div>
+    <div class="blackout" data-fade style="opacity:0"></div>
+  </div>
+</section>
+
+<!-- 3 · Hear -->
+<section class="step" id="hear">
+  <div class="stage">
+    <div class="rings"><div class="ring" data-ring="0"></div><div class="ring" data-ring="1"></div><div class="ring" data-ring="2"></div></div>
+    <div class="ripple">
+      <p class="verb">Hear</p>
+      <div class="phone"><img src="assets/img/hear.webp" alt="Sunday summarising a song from audio."></div>
+      <div class="caption" data-cap><h2>Hear</h2><p>Play it a recording and ask what it means.</p></div>
+    </div>
+    <div class="blackout" data-fade style="opacity:0"></div>
+  </div>
+</section>
+
+<!-- 4 · Watch -->
+<section class="step" id="watch">
+  <div class="stage">
+    <p class="verb">Watch</p>
+    <div class="strip">
+      <div class="phone"><img src="assets/img/see.webp" alt=""></div>
+      <div class="phone is-hero"><img src="assets/img/watch.webp" alt="Sunday identifying architecture from a video."></div>
+      <div class="phone"><img src="assets/img/read.webp" alt=""></div>
+    </div>
+    <div class="caption" data-cap><h2>Watch</h2><p>Video, sampled frame by frame, then summarised.</p></div>
+    <div class="blackout" data-fade style="opacity:0"></div>
+  </div>
+</section>
+
+<!-- 5 · Read -->
+<section class="step" id="read">
+  <div class="stage">
+    <p class="verb">Read</p>
+    <div class="sheet">
+      <div class="phone"><img src="assets/img/read.webp" alt="Sunday breaking a PDF into a checklist."></div>
+      <div class="rule"></div>
+    </div>
+    <div class="caption" data-cap><h2>Read</h2><p>Hand it a PDF and ask what you need to do.</p></div>
+    <div class="blackout" data-fade style="opacity:0"></div>
+  </div>
+</section>
+
+<!-- 6 · Search -->
+<section class="step" id="search">
+  <div class="stage">
+    <p class="verb">Search</p>
+    <p class="big scan"><span class="kicker">Looked it up</span>Live results, only when you say so.</p>
+    <div class="halo"></div>
+    <div class="blackout" data-fade style="opacity:0"></div>
+  </div>
+</section>
+
+<!-- 7 · Locate -->
+<section class="step" id="locate">
+  <div class="stage">
+    <div class="pulse"></div><div class="pin"></div>
+    <p class="verb">Locate</p>
+    <p class="big drop"><span class="kicker">Right here</span>Weather and time for wherever you are.</p>
+    <div class="blackout" data-fade style="opacity:0"></div>
+  </div>
+</section>
+
+<!-- 8 · Calculate -->
+<section class="step" id="calc">
+  <div class="stage">
+    <p class="verb">Calculate</p>
+    <div style="text-align:center">
+      <p class="big" style="font-size:.9rem;letter-spacing:.14em;text-transform:uppercase;color:var(--fg-3);font-weight:600">Drop an apple for 30s</p>
+      <p class="readout"><span id="calcNum">0000</span><span class="unit">m</span></p>
+    </div>
+    <div class="blackout" data-fade style="opacity:0"></div>
+  </div>
+</section>
+
+<!-- 9 · Remember -->
+<section class="step" id="remember">
+  <div class="stage">
+    <p class="verb">Remember</p>
+    <div class="deck">
+      <div class="phone"><img src="assets/img/see.webp" alt=""></div>
+      <div class="phone"><img src="assets/img/hear.webp" alt=""></div>
+      <div class="phone"><img src="assets/img/read.webp" alt=""></div>
+    </div>
+    <div class="caption" data-cap><h2>Remember</h2><p>Holds context through long conversations.</p></div>
+    <div class="blackout" data-fade style="opacity:0"></div>
+  </div>
+</section>
+
+<!-- 10 · Think -->
+<section class="step" id="think">
+  <div class="stage">
+    <p class="verb">Think</p>
+    <div class="phone fold"><img src="assets/img/think.webp" alt="Thinking Mode showing visible reasoning."></div>
+    <div class="seamline"></div>
+    <div class="caption" data-cap><h2>Think</h2><p>Watch it reason through the problem, step by step.</p></div>
+    <div class="blackout" data-fade style="opacity:0"></div>
+  </div>
+</section>
+
+<!-- 11 · Know -->
+<section class="step" id="know">
+  <div class="stage">
+    <div class="bloom"></div>
+    <p class="big final"><span class="kicker">Know</span>An on-device knowledge base, for answers with no connection at all.</p>
+  </div>
+</section>
+
+<section class="outro">
+  <div>
+    <h2>Everything runs privately,<br>on your device.</h2>
+    <p>Knowledge for the frontier.</p>
+  </div>
+</section>
+
+<p class="hint" id="hint">Scroll</p>
+
+<script>
+(function () {
+  'use strict';
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  var clamp = function (v,a,b){ return v<a?a:v>b?b:v; };
+  var ease  = function (t){ return t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2; };
+  var out   = function (t){ return 1-Math.pow(1-t,3); };
+  // Remap a slice of a step's progress to 0..1.
+  var span  = function (p,a,b){ return clamp((p-a)/(b-a),0,1); };
+  var set   = function (el,k,v){ el.style.setProperty(k,v); };
+
+  var $ = function (s,r){ return (r||document).querySelector(s); };
+
+  var chatLine = $('#chatLine'), chatO = $('#chatO');
+  var drift = { x:0, y:0 };
+
+  function measure() {
+    set(chatLine,'--zoom','1'); set(chatLine,'--tx','0px'); set(chatLine,'--ty','0px');
+    var lr = chatLine.getBoundingClientRect(), or_ = chatO.getBoundingClientRect();
+    set(chatLine,'--ox', ((or_.left+or_.width/2-lr.left)/lr.width*100).toFixed(2)+'%');
+    set(chatLine,'--oy', ((or_.top+or_.height*0.52-lr.top)/lr.height*100).toFixed(2)+'%');
+    // Scaling about the letter pins it where it sits, so the zoom would head
+    // into a corner. Measure its offset from the middle of the sticky stage.
+    var st = chatLine.closest('.stage').getBoundingClientRect();
+    drift.x = (st.left+st.width/2) - (or_.left+or_.width/2);
+    drift.y = (st.top+st.height/2) - (or_.top+or_.height*0.52);
+  }
+
+  /* Each verb hands off with its own mechanism. Where a step owns its
+     entrance the one before it simply fades to black, which is invisible
+     against the page and keeps the two ends independent. */
+  var moves = {
+    chat: function (p, s) {                       // drive through a letterform
+      var z = ease(span(p,.34,1)), c = ease(span(p,.34,.6));
+      set(chatLine,'--zoom',(1+z*22).toFixed(3));
+      set(chatLine,'--tx',(drift.x*c).toFixed(1)+'px');
+      set(chatLine,'--ty',(drift.y*c).toFixed(1)+'px');
+    },
+    see: function (p, s) {                        // an aperture opens
+      set($('.lens',s),'--slit',(50-ease(span(p,.04,.36))*50).toFixed(2)+'%');
+    },
+    hear: function (p, s) {                       // a ripple spreads outward
+      set($('.ripple',s),'--r',(ease(span(p,.02,.4))*82).toFixed(1)+'%');
+      [].forEach.call(s.querySelectorAll('.ring'), function (r, i) {
+        var t = span(p, .02+i*.06, .34+i*.06);
+        set(r,'--rs',(t*3.4).toFixed(2));
+        set(r,'--ro',(Math.sin(t*Math.PI)*.5).toFixed(2));
+      });
+    },
+    watch: function (p, s) {                      // frames flick past, one settles
+      var strip = $('.strip',s), w = strip.firstElementChild.offsetWidth + 14;
+      var t = ease(span(p,.02,.4));
+      set(strip,'--sx', ((1-t)*w*1.9).toFixed(1)+'px');
+      set(strip,'--so', (.1+t*.28).toFixed(2));
+    },
+    read: function (p, s) {                       // lines reveal down the page
+      var t = ease(span(p,.04,.46));
+      set($('.phone',s),'--unread',((1-t)*100).toFixed(1)+'%');
+      var rule = $('.rule',s);
+      set(rule,'--ruleY',(t*100).toFixed(1)+'%');
+      set(rule,'--ruleO',(Math.sin(clamp(t,0,1)*Math.PI)*.9).toFixed(2));
+    },
+    search: function (p, s) {                     // a lens sweeps, then opens out
+      var t = span(p,.02,.5);
+      // Hold the lens small while it travels, or it covers the viewport
+      // before the sweep is legible; only widen once it has crossed.
+      var sweep = ease(clamp(t / .72, 0, 1));
+      var open  = ease(clamp((t - .72) / .28, 0, 1));
+      var r  = 104 + open * Math.max(innerWidth, innerHeight) * 1.3;
+      var lx = 16 + sweep * 68;
+      var el = $('.scan',s), halo = $('.halo',s);
+      set(el,'--lens', r.toFixed(0)+'px');   set(el,'--lx', lx.toFixed(1)+'%');
+      set(halo,'--lens', r.toFixed(0)+'px'); set(halo,'--lx', lx.toFixed(1)+'%');
+      set(halo,'--haloO', ((1 - open) * .75).toFixed(2));
+    },
+    locate: function (p, s) {                     // drops in and settles on a pin
+      var t = out(span(p,.02,.36));
+      set($('.drop',s),'--dy', ((1-t)*-55).toFixed(1)+'vh');
+      var pin = $('.pin',s), pulse = $('.pulse',s);
+      var k = span(p,.3,.5);
+      set(pin,'--ps',(k*1).toFixed(2)); set(pin,'--po',(k*.9).toFixed(2));
+      var q = span(p,.32,.62);
+      set(pulse,'--pulse',(q*2.6).toFixed(2));
+      set(pulse,'--pulseO',(Math.sin(q*Math.PI)*.6).toFixed(2));
+    },
+    calc: function (p, s) {                       // counts up and lands on the answer
+      // Deliberately a count rather than a digit scramble: scroll can stop
+      // anywhere, and a frozen scramble reads as a wrong answer where a
+      // frozen count still reads as working.
+      var t = ease(span(p,.04,.5));
+      $('#calcNum').textContent = String(Math.round(t * 4410));
+    },
+    remember: function (p, s) {                   // earlier screens recede behind
+      set($('.deck',s),'--spread', ease(span(p,.04,.42)).toFixed(3));
+    },
+    think: function (p, s) {                      // unfolds from a vertical seam
+      var t = ease(span(p,.06,.44));
+      set($('.fold',s),'--seam',((1-t)*50).toFixed(2)+'%');
+      set($('.seamline',s),'--seamO',(Math.sin(clamp(t,0,1)*Math.PI)*.9).toFixed(2));
+    },
+    know: function (p, s) {                       // blooms from a point of light
+      var b = span(p,.02,.3), f = span(p,.22,.5);
+      set($('.bloom',s),'--bs',(1+b*b*30).toFixed(2));
+      set($('.bloom',s),'--bo',(Math.sin(b*Math.PI)).toFixed(2));
+      set($('.final',s),'--fo', f.toFixed(2));
+    }
+  };
+
+  var steps = [].slice.call(document.querySelectorAll('.step')).map(function (el) {
+    return { el: el, stage: $('.stage', el), fade: $('[data-fade]', el),
+             cap: $('[data-cap]', el), move: moves[el.id] };
+  });
+  var hint = $('#hint');
+
+  function render() {
+    var vh = window.innerHeight;
+    for (var i = 0; i < steps.length; i++) {
+      var s = steps[i], r = s.el.getBoundingClientRect();
+      // Skip anything nowhere near the viewport.
+      if (r.bottom < -vh || r.top > vh * 2) continue;
+
+      var runway = r.height - vh;
+      var p = runway > 0 ? clamp(-r.top / runway, 0, 1) : 0;
+
+      if (s.move) s.move(p, s.el);
+      if (s.fade) s.fade.style.opacity = span(p, .84, .98).toFixed(3);
+      if (s.cap)  s.cap.style.opacity  = (span(p,.14,.32) * (1 - span(p,.7,.86))).toFixed(3);
+    }
+    hint.style.opacity = window.scrollY > vh * .6 ? 0 : 1;
+  }
+
+  var ticking = false;
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function () { render(); ticking = false; });
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', function () { measure(); render(); }, { passive: true });
+  window.addEventListener('load', function () { measure(); render(); });
+  measure(); render();
+}());
+</script>
+</body>
+</html>
