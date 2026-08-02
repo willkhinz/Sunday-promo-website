@@ -666,25 +666,25 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   overflow: hidden;
   display: grid;
   place-items: center;
+  place-content: center;
   /* Reserve the verb above and the caption + download bar below, so the
      frame centres in what is actually free rather than the whole stage. */
-  padding: 92px var(--gut) 104px;
+  padding: 68px var(--gut) 116px;
 }
 
-/* Cleared past the site header, which the prototype did not have to allow for. */
+/* Sits with its description at the foot of the step. Pinning it in the
+   corner crowded the frame once the frames filled the screen. */
 #walk .verb {
-  position: absolute;
-  top: max(64px, calc(env(safe-area-inset-top) + 50px));
-  left: var(--gut);
-  font-size: .7rem; font-weight: 600; letter-spacing: .18em;
-  text-transform: uppercase; color: var(--fg-3); z-index: 6;
+  font-size: .68rem; font-weight: 600; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--fg-3);
+  margin-bottom: 7px;
 }
 
 #walk .blackout { position: absolute; inset: 0; background: #000; pointer-events: none; z-index: 7; }
 
 #walk .phone {
   position: relative;
-  width: min(78vw, 300px);
+  width: min(80vw, 308px);
   max-width: none;
   aspect-ratio: 640 / 1391;
   border-radius: 22px;
@@ -738,8 +738,8 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 
 /* 3 · Hear — a ripple spreads from a point */
 #walk #hear .ripple {
-  position: absolute; inset: 0; display: grid; place-items: center; background: #000;
-  padding: 92px var(--gut) 104px;
+  position: absolute; inset: 0; display: grid; place-items: center; place-content: center; background: #000;
+  padding: 68px var(--gut) 116px;
   clip-path: circle(var(--r,0%) at 50% 50%); will-change: clip-path;
 }
 #walk #hear .rings { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
@@ -800,7 +800,7 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 #walk #calc .unit { font-size: .3em; color: var(--fg-3); letter-spacing: .04em; margin-left: .18em; }
 
 /* 9 · Remember — earlier screens recede behind */
-#walk #remember .deck { position: relative; width: min(78vw,300px); aspect-ratio: 640/1391; }
+#walk #remember .deck { position: relative; width: min(80vw,308px); aspect-ratio: 640/1391; }
 #walk #remember .deck .phone { position: absolute; inset: 0; width: 100%; }
 #walk #remember .deck .phone:nth-child(1) { transform: translateY(calc(var(--spread,0) * -46px)) scale(calc(1 - var(--spread,0) * .18)); opacity: calc(1 - var(--spread,0) * .55); }
 #walk #remember .deck .phone:nth-child(2) { transform: translateY(calc(var(--spread,0) * -23px)) scale(calc(1 - var(--spread,0) * .09)); opacity: calc(1 - var(--spread,0) * .3); }
