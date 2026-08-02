@@ -196,7 +196,51 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 
 /* ── hero ──────────────────────────────────────────────────── */
 
-.hero { padding-top: clamp(36px, 9vw, 76px); }
+.hero {
+  position: relative;
+  isolation: isolate;
+  padding-top: clamp(36px, 9vw, 76px);
+}
+
+/* ── hero video ────────────────────────────────────────────── */
+
+.hero-video {
+  position: absolute;
+  /* Run up behind the (transparent) header, or the top of the video cuts
+     against the black band above it as a hard horizontal seam. */
+  inset: -160px 0 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hero-video video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Keeps the headline legible over footage and fades the clip out into
+   the black page rather than ending on a hard edge. */
+/* Tuned to this clip: it averages ~59/255 luma, so the copy side needs
+   roughly .78 effective cover while the rest can stay light enough for the
+   footage to actually read. The two gradients multiply — allow for that. */
+.hero-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, rgba(0,0,0,.88) 0%, rgba(0,0,0,.66) 45%, rgba(0,0,0,.38) 100%),
+    linear-gradient(to bottom, rgba(0,0,0,.28) 0%, transparent 22%, rgba(0,0,0,.8) 86%, #000 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Poster only — the video element still paints its poster frame. */
+  .hero-video video { display: none; }
+  .hero-video {
+    background: #000 center / cover no-repeat url("../assets/video/hero-poster.webp");
+  }
+}
 
 .hero h1 {
   font-size: clamp(2.35rem, 10.4vw, 4.35rem);

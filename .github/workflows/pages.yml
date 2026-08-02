@@ -39,7 +39,7 @@ jobs:
           mkdir -p _site/assets
           cp index.html walkthrough.html _site/
           cp -r css js _site/
-          cp -r assets/img _site/assets/
+          cp -r assets/img assets/video _site/assets/
           touch _site/.nojekyll
 
       # Every local path any staged page references must exist in the tree.
