@@ -54,8 +54,12 @@
     var span  = function (p, a, b) { return clamp((p - a) / (b - a), 0, 1); };
     var set   = function (el, k, v) { el.style.setProperty(k, v); };
 
-    var chatLine = $('#chatLine', root), chatO = $('#chatO', root);
-    var drift = { x: 0, y: 0 };
+    var chatLine = $('#chatLine', root), chatO = $('#chatO', root), oRing = $('#oRing', root);
+    var drift = { x: 0, y: 0 }, oW = 0;
+
+    // Where the glyph hands over to the ring. Text is only scaled this far
+    // because past a few multiples it is a stretched bitmap, not type.
+    var TEXT_MAX = 5;
 
     function measure() {
       if (!chatLine || !chatO) return;
@@ -68,16 +72,36 @@
       var st = chatLine.closest('.stage').getBoundingClientRect();
       drift.x = (st.left + st.width/2) - (or_.left + or_.width/2);
       drift.y = (st.top + st.height/2) - (or_.top + or_.height*0.52);
+      oW = or_.width;
     }
 
     var moves = {
       chat: function (p) {                          // drive through a letterform
         // Drift starts with the zoom, not before it — a sideways slide with
         // no scale behind it reads as the text wandering off on its own.
-        var z = ease(span(p,.22,1)), c = ease(span(p,.22,.44));
-        set(chatLine,'--zoom',(1 + z*22).toFixed(3));
+        var z = ease(span(p,.16,.52)), c = ease(span(p,.16,.40));
+        var scale = 1 + z * (TEXT_MAX - 1);
+        set(chatLine,'--zoom', scale.toFixed(3));
         set(chatLine,'--tx',(drift.x*c).toFixed(1)+'px');
         set(chatLine,'--ty',(drift.y*c).toFixed(1)+'px');
+        chatLine.style.opacity = (1 - span(p,.40,.52)).toFixed(3);
+
+        // The ring picks the "o" up where the glyph leaves off and keeps
+        // going on geometry rather than transform, so its edge stays sharp
+        // right up to the moment it clears the screen.
+        var rt = span(p,.38,1);
+        if (rt <= 0) { oRing.style.opacity = '0'; return; }
+        var diag = Math.hypot(innerWidth, innerHeight);
+        var d0 = oW * TEXT_MAX * 0.88;
+        // Grow geometrically: at these magnifications a linear ramp reads as
+        // slowing down. Carry on until the stroke itself is off-screen.
+        // Sized so the stroke clears the corners near the very end of the
+        // step. Overshooting it just puts the dead black back.
+        var d = d0 * Math.pow((diag * 1.6) / d0, ease(rt));
+        oRing.style.width = d.toFixed(1) + 'px';
+        oRing.style.height = d.toFixed(1) + 'px';
+        oRing.style.borderWidth = (d * 0.185).toFixed(1) + 'px';
+        oRing.style.opacity = span(p,.38,.47).toFixed(3);
       },
       see: function (p, s) {                        // an aperture opens
         set($('.lens',s),'--slit',(50 - ease(span(p,.02,.26))*50).toFixed(2)+'%');
@@ -175,11 +199,24 @@
     var y = window.scrollY || window.pageYOffset;
     if (header) header.classList.toggle('is-stuck', y > 24);
 
+    if (hero && !reduced) {
+      // Swing the hero frame open over the first stretch of scroll.
+      var u = Math.min(y / Math.max(hero.offsetHeight * 0.35, 1), 1);
+      hero.style.setProperty('--unfold', (u * u * (3 - 2 * u)).toFixed(3));
+    }
+
     if (sticky && hero) {
-      // Surface the bar once the hero's own CTA has scrolled away.
-      var past = y > hero.offsetHeight * 0.72;
-      sticky.classList.toggle('is-visible', past);
-      sticky.setAttribute('aria-hidden', past ? 'false' : 'true');
+      // Surface the bar once the hero's own CTA has scrolled away — but not
+      // over the walkthrough, where it sits on top of every step.
+      var walkEl = document.getElementById('walk');
+      var inWalk = false;
+      if (walkEl) {
+        var wr = walkEl.getBoundingClientRect();
+        inWalk = wr.top < window.innerHeight * 0.5 && wr.bottom > window.innerHeight * 0.5;
+      }
+      var show = y > hero.offsetHeight * 0.72 && !inWalk;
+      sticky.classList.toggle('is-visible', show);
+      sticky.setAttribute('aria-hidden', show ? 'false' : 'true');
     }
 
     walk.render();

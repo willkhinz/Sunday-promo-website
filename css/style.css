@@ -273,6 +273,17 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   margin-top: 62px;
   display: flex;
   justify-content: center;
+  perspective: 1400px;
+}
+
+/* Hinged at the top edge so it swings open like a folded panel rather
+   than just tilting. --unfold is driven by scroll depth in main.js. */
+.hero-shot .phone {
+  transform-origin: 50% 0%;
+  transform: rotateX(calc((1 - var(--unfold, 1)) * -62deg))
+             translateY(calc((1 - var(--unfold, 1)) * 26px));
+  opacity: calc(.28 + var(--unfold, 1) * .72);
+  will-change: transform, opacity;
 }
 
 .phone {
@@ -657,7 +668,7 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   place-items: center;
   /* Reserve the verb above and the caption + download bar below, so the
      frame centres in what is actually free rather than the whole stage. */
-  padding: 92px var(--gut) calc(var(--sticky-h, 0px) + 74px);
+  padding: 92px var(--gut) 104px;
 }
 
 /* Cleared past the site header, which the prototype did not have to allow for. */
@@ -673,7 +684,7 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 
 #walk .phone {
   position: relative;
-  width: min(76vw, 280px);
+  width: min(78vw, 300px);
   max-width: none;
   aspect-ratio: 640 / 1391;
   border-radius: 22px;
@@ -687,9 +698,7 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 #walk .caption {
   position: absolute;
   left: var(--gut); right: var(--gut);
-  /* --sticky-h is measured in main.js and is 0 once the download bar is
-     hidden on desktop, so the caption sits clear of it either way. */
-  bottom: calc(var(--sticky-h, 0px) + 30px);
+  bottom: max(30px, calc(env(safe-area-inset-bottom) + 22px));
   text-align: center; z-index: 6;
 }
 #walk .caption p { color: var(--fg-2); font-size: .92rem; line-height: 1.5; }
@@ -711,13 +720,26 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   will-change: transform;
 }
 
+/* Past a few multiples, scaled text is just a stretched bitmap. The ring
+   takes over from the glyph and grows by width/height instead of
+   transform, so it re-paints at full resolution however large it gets. */
+#walk #chat .o-ring {
+  position: absolute;
+  left: 50%; top: 50%;
+  translate: -50% -50%;
+  border-radius: 50%;
+  border: 0 solid #fff;
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* 2 · See — an aperture opens */
 #walk #see .lens { clip-path: inset(var(--slit,50%) 0 var(--slit,50%) 0); will-change: clip-path; }
 
 /* 3 · Hear — a ripple spreads from a point */
 #walk #hear .ripple {
   position: absolute; inset: 0; display: grid; place-items: center; background: #000;
-  padding: 92px var(--gut) calc(var(--sticky-h, 0px) + 74px);
+  padding: 92px var(--gut) 104px;
   clip-path: circle(var(--r,0%) at 50% 50%); will-change: clip-path;
 }
 #walk #hear .rings { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
@@ -778,7 +800,7 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 #walk #calc .unit { font-size: .3em; color: var(--fg-3); letter-spacing: .04em; margin-left: .18em; }
 
 /* 9 · Remember — earlier screens recede behind */
-#walk #remember .deck { position: relative; width: min(76vw,280px); aspect-ratio: 640/1391; }
+#walk #remember .deck { position: relative; width: min(78vw,300px); aspect-ratio: 640/1391; }
 #walk #remember .deck .phone { position: absolute; inset: 0; width: 100%; }
 #walk #remember .deck .phone:nth-child(1) { transform: translateY(calc(var(--spread,0) * -46px)) scale(calc(1 - var(--spread,0) * .18)); opacity: calc(1 - var(--spread,0) * .55); }
 #walk #remember .deck .phone:nth-child(2) { transform: translateY(calc(var(--spread,0) * -23px)) scale(calc(1 - var(--spread,0) * .09)); opacity: calc(1 - var(--spread,0) * .3); }
@@ -801,6 +823,10 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 #walk #know .final { opacity: var(--fo,0); }
 
 @media (prefers-reduced-motion: reduce) {
+  /* No scroll driver runs, so the frame must not stay folded shut. */
+  .hero-shot .phone { transform: none !important; opacity: 1 !important; }
+  #walk #chat .o-ring { display: none !important; }
+  #walk #chat .line { opacity: 1 !important; }
   #walk .step { height: auto !important; }
   #walk .stage { position: static; height: auto; padding-block: 60px; gap: 24px; }
   #walk .stage > * { transform: none !important; clip-path: none !important; opacity: 1 !important;
