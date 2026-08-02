@@ -643,7 +643,7 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   color: var(--fg-3);
 }
 
-#walk .step { position: relative; height: 230vh; }
+#walk .step { position: relative; height: 175vh; }
 
 /* Tall runway, sticky viewport: progress through the runway drives every
    transform, so the motion is scrubbed rather than triggered. */
@@ -655,12 +655,15 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   overflow: hidden;
   display: grid;
   place-items: center;
+  /* Reserve the verb above and the caption + download bar below, so the
+     frame centres in what is actually free rather than the whole stage. */
+  padding: 92px var(--gut) calc(var(--sticky-h, 0px) + 74px);
 }
 
 /* Cleared past the site header, which the prototype did not have to allow for. */
 #walk .verb {
   position: absolute;
-  top: max(78px, calc(env(safe-area-inset-top) + 62px));
+  top: max(64px, calc(env(safe-area-inset-top) + 50px));
   left: var(--gut);
   font-size: .7rem; font-weight: 600; letter-spacing: .18em;
   text-transform: uppercase; color: var(--fg-3); z-index: 6;
@@ -670,7 +673,7 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 
 #walk .phone {
   position: relative;
-  width: min(62vw, 226px);
+  width: min(76vw, 280px);
   max-width: none;
   aspect-ratio: 640 / 1391;
   border-radius: 22px;
@@ -689,8 +692,7 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   bottom: calc(var(--sticky-h, 0px) + 30px);
   text-align: center; z-index: 6;
 }
-#walk .caption h2 { font-size: clamp(1.8rem, 7.5vw, 2.4rem); }
-#walk .caption p { margin-top: 9px; color: var(--fg-2); font-size: .92rem; line-height: 1.5; }
+#walk .caption p { color: var(--fg-2); font-size: .92rem; line-height: 1.5; }
 
 #walk .big {
   padding-inline: var(--gut); text-align: center;
@@ -715,6 +717,7 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 /* 3 · Hear — a ripple spreads from a point */
 #walk #hear .ripple {
   position: absolute; inset: 0; display: grid; place-items: center; background: #000;
+  padding: 92px var(--gut) calc(var(--sticky-h, 0px) + 74px);
   clip-path: circle(var(--r,0%) at 50% 50%); will-change: clip-path;
 }
 #walk #hear .rings { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
@@ -775,7 +778,7 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 #walk #calc .unit { font-size: .3em; color: var(--fg-3); letter-spacing: .04em; margin-left: .18em; }
 
 /* 9 · Remember — earlier screens recede behind */
-#walk #remember .deck { position: relative; width: min(62vw,226px); aspect-ratio: 640/1391; }
+#walk #remember .deck { position: relative; width: min(76vw,280px); aspect-ratio: 640/1391; }
 #walk #remember .deck .phone { position: absolute; inset: 0; width: 100%; }
 #walk #remember .deck .phone:nth-child(1) { transform: translateY(calc(var(--spread,0) * -46px)) scale(calc(1 - var(--spread,0) * .18)); opacity: calc(1 - var(--spread,0) * .55); }
 #walk #remember .deck .phone:nth-child(2) { transform: translateY(calc(var(--spread,0) * -23px)) scale(calc(1 - var(--spread,0) * .09)); opacity: calc(1 - var(--spread,0) * .3); }
