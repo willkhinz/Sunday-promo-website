@@ -76,59 +76,53 @@
     }
 
     var moves = {
-      chat: function (p) {                          // drive through a letterform
-        // Drift starts with the zoom, not before it — a sideways slide with
-        // no scale behind it reads as the text wandering off on its own.
-        var z = ease(span(p,.16,.52)), c = ease(span(p,.16,.40));
-        var scale = 1 + z * (TEXT_MAX - 1);
-        set(chatLine,'--zoom', scale.toFixed(3));
+      chat: function (q) {                          // drive through a letterform
+        // Held readable through the arrival, then driven into the letter.
+        var z = ease(span(q,.30,.80)), c = ease(span(q,.30,.52));
+        set(chatLine,'--zoom', (1 + z * (TEXT_MAX - 1)).toFixed(3));
         set(chatLine,'--tx',(drift.x*c).toFixed(1)+'px');
         set(chatLine,'--ty',(drift.y*c).toFixed(1)+'px');
-        chatLine.style.opacity = (1 - span(p,.40,.52)).toFixed(3);
+        chatLine.style.opacity = (1 - span(q,.62,.76)).toFixed(3);
 
         // The ring picks the "o" up where the glyph leaves off and keeps
         // going on geometry rather than transform, so its edge stays sharp
         // right up to the moment it clears the screen.
-        var rt = span(p,.38,1);
+        var rt = span(q,.60,1);
         if (rt <= 0) { oRing.style.opacity = '0'; return; }
         var diag = Math.hypot(innerWidth, innerHeight);
         var d0 = oW * TEXT_MAX * 0.88;
-        // Grow geometrically: at these magnifications a linear ramp reads as
-        // slowing down. Carry on until the stroke itself is off-screen.
-        // Sized so the stroke clears the corners near the very end of the
-        // step. Overshooting it just puts the dead black back.
         var d = d0 * Math.pow((diag * 1.6) / d0, ease(rt));
         oRing.style.width = d.toFixed(1) + 'px';
         oRing.style.height = d.toFixed(1) + 'px';
         oRing.style.borderWidth = (d * 0.185).toFixed(1) + 'px';
-        oRing.style.opacity = span(p,.38,.47).toFixed(3);
+        oRing.style.opacity = span(q,.60,.68).toFixed(3);
       },
-      see: function (p, s) {                        // an aperture opens
-        set($('.lens',s),'--slit',(50 - ease(span(p,.02,.26))*50).toFixed(2)+'%');
+      see: function (q, s) {                        // an aperture opens
+        set($('.lens',s),'--slit',(50 - ease(span(q,.03,.46))*50).toFixed(2)+'%');
       },
-      hear: function (p, s) {                       // a ripple spreads outward
-        set($('.ripple',s),'--r',(ease(span(p,.01,.26))*82).toFixed(1)+'%');
+      hear: function (q, s) {                       // a ripple spreads outward
+        set($('.ripple',s),'--r',(ease(span(q,.03,.44))*82).toFixed(1)+'%');
         [].forEach.call(s.querySelectorAll('.ring'), function (r, i) {
-          var t = span(p, .01 + i*.05, .26 + i*.05);
+          var t = span(q, .03 + i*.06, .42 + i*.06);
           set(r,'--rs',(t*3.4).toFixed(2));
           set(r,'--ro',(Math.sin(t*Math.PI)*.5).toFixed(2));
         });
       },
-      watch: function (p, s) {                      // frames flick past, one settles
+      watch: function (q, s) {                      // frames flick past, one settles
         var strip = $('.strip',s), w = strip.firstElementChild.offsetWidth + 14;
-        var t = ease(span(p,.01,.26));
+        var t = ease(span(q,.03,.48));
         set(strip,'--sx',((1-t)*w*1.9).toFixed(1)+'px');
         set(strip,'--so',(.1 + t*.28).toFixed(2));
       },
-      read: function (p, s) {                       // lines reveal down the page
-        var t = ease(span(p,.02,.32));
+      read: function (q, s) {                       // lines reveal down the page
+        var t = ease(span(q,.04,.50));
         set($('.phone',s),'--unread',((1-t)*100).toFixed(1)+'%');
         var rule = $('.rule',s);
         set(rule,'--ruleY',(t*100).toFixed(1)+'%');
         set(rule,'--ruleO',(Math.sin(clamp(t,0,1)*Math.PI)*.9).toFixed(2));
       },
-      search: function (p, s) {                     // a lens sweeps, then opens out
-        var t = span(p,.01,.36);
+      search: function (q, s) {                     // a lens sweeps, then opens out
+        var t = span(q,.03,.56);
         // Hold the lens small while it travels, or it covers the viewport
         // before the sweep is legible; only widen once it has crossed.
         var sweep = ease(clamp(t/.72,0,1)), open = ease(clamp((t-.72)/.28,0,1));
@@ -139,31 +133,31 @@
         set(halo,'--lens',r.toFixed(0)+'px'); set(halo,'--lx',lx.toFixed(1)+'%');
         set(halo,'--haloO',((1-open)*.75).toFixed(2));
       },
-      locate: function (p, s) {                     // drops in and settles on a pin
-        var t = outc(span(p,.01,.24));
+      locate: function (q, s) {                     // drops in and settles on a pin
+        var t = outc(span(q,.03,.44));
         set($('.drop',s),'--dy',((1-t)*-55).toFixed(1)+'vh');
-        var k = span(p,.20,.34), q = span(p,.22,.46);
+        var k = span(q,.34,.50), qq = span(q,.36,.64);
         var pin = $('.pin',s), pulse = $('.pulse',s);
         set(pin,'--ps',k.toFixed(2)); set(pin,'--po',(k*.9).toFixed(2));
-        set(pulse,'--pulse',(q*2.6).toFixed(2));
-        set(pulse,'--pulseO',(Math.sin(q*Math.PI)*.6).toFixed(2));
+        set(pulse,'--pulse',(qq*2.6).toFixed(2));
+        set(pulse,'--pulseO',(Math.sin(qq*Math.PI)*.6).toFixed(2));
       },
-      calc: function (p, s) {                       // counts up to the answer
+      calc: function (q, s) {                       // counts up to the answer
         // Deliberately a count rather than a digit scramble: scroll can stop
         // anywhere, and a frozen scramble reads as a wrong answer where a
         // frozen count still reads as working.
-        $('#calcNum', s).textContent = String(Math.round(ease(span(p,.02,.34)) * 4410));
+        $('#calcNum', s).textContent = String(Math.round(ease(span(q,.04,.52)) * 4410));
       },
-      remember: function (p, s) {                   // earlier screens recede behind
-        set($('.deck',s),'--spread', ease(span(p,.02,.28)).toFixed(3));
+      remember: function (q, s) {                   // earlier screens recede behind
+        set($('.deck',s),'--spread', ease(span(q,.04,.46)).toFixed(3));
       },
-      think: function (p, s) {                      // unfolds from a vertical seam
-        var t = ease(span(p,.02,.30));
+      think: function (q, s) {                      // unfolds from a vertical seam
+        var t = ease(span(q,.04,.50));
         set($('.fold',s),'--seam',((1-t)*50).toFixed(2)+'%');
         set($('.seamline',s),'--seamO',(Math.sin(clamp(t,0,1)*Math.PI)*.9).toFixed(2));
       },
-      know: function (p, s) {                       // blooms from a point of light
-        var b = span(p,.01,.20), f = span(p,.15,.34);
+      know: function (q, s) {                       // blooms from a point of light
+        var b = span(q,.03,.40), f = span(q,.26,.56);
         set($('.bloom',s),'--bs',(1 + b*b*30).toFixed(2));
         set($('.bloom',s),'--bo',Math.sin(b*Math.PI).toFixed(2));
         set($('.final',s),'--fo', f.toFixed(2));
@@ -171,25 +165,61 @@
     };
 
     var steps = [].slice.call(root.querySelectorAll('.step')).map(function (el) {
-      return { el: el, fade: $('[data-fade]', el), cap: $('[data-cap]', el), move: moves[el.id] };
+      return { el: el, stage: $('.stage', el), fade: $('[data-fade]', el),
+               cap: $('[data-cap]', el), move: moves[el.id] };
     });
 
-    function render() {
-      var vh = window.innerHeight;
+    /* Animations follow a smoothed scroll position rather than the live one.
+       Tied directly to scroll, a fast flick completes a transition in two or
+       three frames — you arrive at the end state having seen nothing move.
+       Chasing a lagged value instead gives every transition a floor on how
+       long it can take, however hard you throw the page. */
+    var TAU = 0.45;                 // ~1s to substantially settle
+    var smoothY = null, lastT = 0, running = false;
+
+    /* Steps overlap by a viewport, so a stage is pinned for its whole
+       effective length and hands straight over to the next. Progress is
+       therefore just position through that pinned run. */
+    function paint(y) {
+      var vh = window.innerHeight, sy = window.scrollY;
       for (var i = 0; i < steps.length; i++) {
         var s = steps[i], r = s.el.getBoundingClientRect();
         if (r.bottom < -vh || r.top > vh * 2) continue;   // nowhere near the viewport
         var runway = r.height - vh;
-        var p = runway > 0 ? clamp(-r.top / runway, 0, 1) : 0;
-        if (s.move) s.move(p, s.el);
-        // Black is only the seam between two steps, so it arrives late and
-        // briefly. Ramping from .84 left a long dead stretch at full black
-        // before the next step had anything to show.
-        if (s.fade) s.fade.style.opacity = span(p,.93,1).toFixed(3);
-        // Captions hold most of the step rather than fading a third of the
-        // way through, which is what made the middle read as empty.
-        if (s.cap)  s.cap.style.opacity  = (span(p,.10,.24) * (1 - span(p,.84,.95))).toFixed(3);
+        if (runway <= 0) continue;
+        // Off the smoothed position, not the live rect.
+        var raw = (y - (r.top + sy)) / runway;
+        // Overlapping the steps means the next stage is already sliding up
+        // behind the current one; show a stage only across its own run or it
+        // bleeds into its neighbour.
+        var live = raw > -0.002 && raw < 1.002;
+        if (s.stage) s.stage.style.visibility = live ? 'visible' : 'hidden';
+        if (!live) continue;
+        var q = clamp(raw, 0, 1);
+        if (s.move) s.move(q, s.el);
+        // Black is now only the last sliver, where one step has finished
+        // and the next has already taken over the screen.
+        if (s.fade) s.fade.style.opacity = span(q,.94,1).toFixed(3);
+        if (s.cap)  s.cap.style.opacity  = (span(q,.08,.22) * (1 - span(q,.86,.96))).toFixed(3);
       }
+    }
+
+    function frame(t) {
+      var dt = lastT ? Math.min((t - lastT) / 1000, 0.05) : 1 / 60;
+      lastT = t;
+      var target = window.scrollY;
+      smoothY += (target - smoothY) * (1 - Math.exp(-dt / TAU));
+      if (Math.abs(target - smoothY) < 0.4) { smoothY = target; running = false; }
+      paint(smoothY);
+      if (running) requestAnimationFrame(frame); else lastT = 0;
+    }
+
+    function render() {
+      if (smoothY === null) { smoothY = window.scrollY; paint(smoothY); return; }
+      if (running) return;
+      running = true;
+      lastT = 0;
+      requestAnimationFrame(frame);
     }
 
     return { render: render, measure: measure };
