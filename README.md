@@ -10,6 +10,17 @@ the directory and it runs.
 python3 -m http.server 8000
 ```
 
+## Deploying to Firebase Hosting
+
+`firebase.json` is set up to serve the repo root, with the original
+screenshots excluded and long cache headers on the images. From a machine
+with the Firebase CLI installed and logged in:
+
+```
+firebase use --add      # pick the project, first time only
+firebase deploy --only hosting
+```
+
 ## Structure
 
 ```
