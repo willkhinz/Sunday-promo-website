@@ -196,46 +196,7 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 
 /* ── hero ──────────────────────────────────────────────────── */
 
-.hero {
-  position: relative;
-  isolation: isolate;
-  padding-top: clamp(36px, 9vw, 76px);
-}
-
-/* ── hero video ────────────────────────────────────────────── */
-
-.hero-video {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.hero-video video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-}
-
-/* Keeps the headline legible over footage and fades the clip out into
-   the black page rather than ending on a hard edge. */
-.hero-scrim {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(to right, rgba(0,0,0,.92) 0%, rgba(0,0,0,.72) 42%, rgba(0,0,0,.45) 100%),
-    linear-gradient(to bottom, rgba(0,0,0,.55) 0%, transparent 28%, rgba(0,0,0,.85) 88%, #000 100%);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  /* Poster only — the video element still paints its poster frame. */
-  .hero-video video { display: none; }
-  .hero-video {
-    background: #000 center / cover no-repeat url("../assets/video/hero-poster.webp");
-  }
-}
+.hero { padding-top: clamp(36px, 9vw, 76px); }
 
 .hero h1 {
   font-size: clamp(2.35rem, 10.4vw, 4.35rem);
