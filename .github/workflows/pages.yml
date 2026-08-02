@@ -37,22 +37,26 @@ jobs:
       - name: Stage site
         run: |
           mkdir -p _site/assets
-          cp index.html _site/
+          cp index.html walkthrough.html _site/
           cp -r css js _site/
           cp -r assets/img _site/assets/
           touch _site/.nojekyll
 
-      # Every local path index.html references must exist in the staged
-      # tree. Without this a renamed or deleted asset ships as a 404.
+      # Every local path any staged page references must exist in the tree.
+      # Without this a renamed or deleted asset ships as a 404.
       - name: Verify staged assets
         run: |
           python3 - <<'PY'
           import re, sys, pathlib
           site = pathlib.Path("_site")
-          html = (site / "index.html").read_text()
-          refs = sorted(set(re.findall(r'(?:src|href)="((?!https?:|#|mailto:|data:)[^"]+)"', html)))
-          missing = [r for r in refs if not (site / r).exists()]
-          print(f"checked {len(refs)} referenced assets")
+          missing, total = [], 0
+          for page in sorted(site.glob("*.html")):
+              refs = sorted(set(re.findall(
+                  r'(?:src|href)="((?!https?:|#|mailto:|data:)[^"]+)"',
+                  page.read_text())))
+              total += len(refs)
+              missing += [f"{page.name} -> {r}" for r in refs if not (site / r).exists()]
+          print(f"checked {total} referenced assets across {len(list(site.glob('*.html')))} pages")
           if missing:
               print("MISSING FROM BUILD:", *missing, sep="\n  ")
               sys.exit(1)
