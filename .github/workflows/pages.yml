@@ -24,7 +24,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # enablement turns Pages on via the API if it is not already
+      # configured, so the deploy does not need a manual Settings visit.
+      # It still requires a public repo on free accounts.
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       # The site is static and served from the repo root. The original
       # screenshots are source-of-truth only and would add ~4 MB to the
