@@ -78,102 +78,140 @@
   </ul>
 </section>
 
-<!-- ───────────────────────── features ───────────────────────── -->
-<section class="section" id="features">
-  <div class="wrap">
-    <header class="section-head reveal">
-      <p class="eyebrow">Capabilities</p>
-      <h2>Eleven things it does<br>without phoning home.</h2>
-    </header>
+<!-- ───────────────────────── walkthrough ───────────────────────── -->
+<section id="walk" aria-label="What Sunday does">
+  <div class="wrap walk-lead">
+    <p class="eyebrow reveal">Capabilities</p>
+    <h2 class="reveal">Eleven things it does<br>without phoning home.</h2>
+    <p class="walk-cue reveal">Keep scrolling.</p>
+  </div>
 
-    <ul class="features">
-      <li class="feature reveal">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 0 1-8 8H4l1.8-3.1A8 8 0 1 1 20 12Z"/></svg>
-        <h3>Chat</h3><p>Ask anything and get a straight, considered answer.</p>
-      </li>
-      <li class="feature reveal">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="12" cy="12" r="3.2"/><path d="M17 9h.01"/></svg>
-        <h3>See</h3><p>Show it a photo. It tells you what's actually in there.</p>
-      </li>
-      <li class="feature reveal">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
-        <h3>Hear</h3><p>Play it a voice note, even a long one, and it transcribes and explains.</p>
-      </li>
-      <li class="feature reveal">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5.5" width="14" height="13" rx="2.5"/><path d="M16.5 10.5 21.5 8v8l-5-2.5z"/></svg>
-        <h3>Watch</h3><p>Hand it a video. It samples the frames, then summarises.</p>
-      </li>
-      <li class="feature reveal">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h7l5 5v13H6z"/><path d="M13 3v5h5M9 13h6M9 17h4"/></svg>
-        <h3>Read</h3><p>Give it a PDF and ask what the document actually says.</p>
-      </li>
-      <li class="feature reveal">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg>
-        <h3>Search</h3><p>Live results for news, scores, and prices — only with your permission.</p>
-      </li>
-      <li class="feature reveal">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/></svg>
-        <h3>Locate</h3><p>Weather and time for wherever you happen to be.</p>
-      </li>
-      <li class="feature reveal">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M8 7h8M8 11h2M12 11h2M16 11h.01M8 15h2M12 15h2M16 15h.01M8 19h6"/></svg>
-        <h3>Calculate</h3><p>Accurate maths on demand, worked out rather than guessed.</p>
-      </li>
-      <li class="feature reveal">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7c0-1.7 1.3-3 3-3h10c1.7 0 3 1.3 3 3v7c0 1.7-1.3 3-3 3H9l-5 4z"/><path d="M9 9h6M9 12.5h3.5"/></svg>
-        <h3>Remember</h3><p>Holds context through long conversations, so you never repeat yourself.</p>
-      </li>
-      <li class="feature reveal">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1.1 2l.1.7h4.8l.1-.7c.1-.8.5-1.5 1.1-2A6 6 0 0 0 12 3Z"/><path d="M9.8 20h4.4"/></svg>
-        <h3>Think</h3><p>Switch on Thinking Mode and watch it reason step by step.</p>
-      </li>
-      <li class="feature reveal">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5C4 4.7 4.7 4 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5zM20 5.5c0-.8-.7-1.5-1.5-1.5H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z"/></svg>
-        <h3>Know</h3><p>An on-device knowledge base, for answers with no connection at all.</p>
-      </li>
-    </ul>
+<!-- 1 · Chat -->
+<section class="step" id="chat">
+  <div class="stage">
+    <p class="verb">Chat</p>
+    <p class="big line" id="chatLine">
+      <span class="kicker">You asked</span>
+      explain why my s<span id="chatO">o</span>urdough didn't rise
+    </p>
+    <div class="blackout" data-fade style="opacity:0"></div>
   </div>
 </section>
 
-<!-- ───────────────────────── carousel ───────────────────────── -->
-<section class="section section-tight" id="screens">
-  <div class="wrap">
-    <header class="section-head reveal">
-      <p class="eyebrow">In the app</p>
-      <h2>Real answers,<br>computed locally.</h2>
-    </header>
+<!-- 2 · See -->
+<section class="step" id="see">
+  <div class="stage">
+    <p class="verb">See</p>
+    <div class="phone lens"><img src="assets/img/see.webp" alt="Sunday describing a cross-hatched drawing."></div>
+    <div class="caption" data-cap><h2>See</h2><p>Show it a photo. It tells you what's actually in there.</p></div>
+    <div class="blackout" data-fade style="opacity:0"></div>
   </div>
+</section>
 
-  <div class="carousel" id="carousel" role="region" aria-label="App screenshots" tabindex="0">
-    <ol class="track" id="track">
-      <li class="slide">
-        <div class="phone"><img src="assets/img/chat.webp" width="640" height="1391" loading="lazy" decoding="async" alt="A chat where Sunday explains why a sourdough loaf failed to rise."></div>
-        <div class="slide-cap"><h3>Chat</h3><p>Ask anything. Get a straight answer.</p></div>
-      </li>
-      <li class="slide">
-        <div class="phone"><img src="assets/img/see.webp" width="640" height="1391" loading="lazy" decoding="async" alt="Sunday analyzing a cross-hatched pen drawing and explaining why it qualifies as artwork."></div>
-        <div class="slide-cap"><h3>See</h3><p>Send a photo. It describes what's in it.</p></div>
-      </li>
-      <li class="slide">
-        <div class="phone"><img src="assets/img/hear.webp" width="640" height="1391" loading="lazy" decoding="async" alt="Sunday summarizing the themes of a song from an audio file."></div>
-        <div class="slide-cap"><h3>Hear</h3><p>Play it a recording and ask what it means.</p></div>
-      </li>
-      <li class="slide">
-        <div class="phone"><img src="assets/img/watch.webp" width="640" height="1391" loading="lazy" decoding="async" alt="Sunday identifying architectural features from a video of a church interior."></div>
-        <div class="slide-cap"><h3>Watch</h3><p>Video, sampled frame by frame, then summarised.</p></div>
-      </li>
-      <li class="slide">
-        <div class="phone"><img src="assets/img/read.webp" width="640" height="1391" loading="lazy" decoding="async" alt="Sunday breaking a membership application PDF into a checklist of required actions."></div>
-        <div class="slide-cap"><h3>Read</h3><p>Hand it a PDF and ask what you need to do.</p></div>
-      </li>
-      <li class="slide">
-        <div class="phone"><img src="assets/img/think.webp" width="640" height="1391" loading="lazy" decoding="async" alt="Thinking Mode showing a round of visible reasoning for a physics free-fall problem."></div>
-        <div class="slide-cap"><h3>Think</h3><p>Watch it reason through the problem, step by step.</p></div>
-      </li>
-    </ol>
+<!-- 3 · Hear -->
+<section class="step" id="hear">
+  <div class="stage">
+    <div class="rings"><div class="ring" data-ring="0"></div><div class="ring" data-ring="1"></div><div class="ring" data-ring="2"></div></div>
+    <div class="ripple">
+      <p class="verb">Hear</p>
+      <div class="phone"><img src="assets/img/hear.webp" alt="Sunday summarising a song from audio."></div>
+      <div class="caption" data-cap><h2>Hear</h2><p>Play it a recording and ask what it means.</p></div>
+    </div>
+    <div class="blackout" data-fade style="opacity:0"></div>
   </div>
+</section>
 
-  <div class="dots wrap" id="dots" aria-hidden="true"></div>
+<!-- 4 · Watch -->
+<section class="step" id="watch">
+  <div class="stage">
+    <p class="verb">Watch</p>
+    <div class="strip">
+      <div class="phone"><img src="assets/img/see.webp" alt=""></div>
+      <div class="phone is-hero"><img src="assets/img/watch.webp" alt="Sunday identifying architecture from a video."></div>
+      <div class="phone"><img src="assets/img/read.webp" alt=""></div>
+    </div>
+    <div class="caption" data-cap><h2>Watch</h2><p>Video, sampled frame by frame, then summarised.</p></div>
+    <div class="blackout" data-fade style="opacity:0"></div>
+  </div>
+</section>
+
+<!-- 5 · Read -->
+<section class="step" id="read">
+  <div class="stage">
+    <p class="verb">Read</p>
+    <div class="sheet">
+      <div class="phone"><img src="assets/img/read.webp" alt="Sunday breaking a PDF into a checklist."></div>
+      <div class="rule"></div>
+    </div>
+    <div class="caption" data-cap><h2>Read</h2><p>Hand it a PDF and ask what you need to do.</p></div>
+    <div class="blackout" data-fade style="opacity:0"></div>
+  </div>
+</section>
+
+<!-- 6 · Search -->
+<section class="step" id="search">
+  <div class="stage">
+    <p class="verb">Search</p>
+    <p class="big scan"><span class="kicker">Looked it up</span>Live results, only when you say so.</p>
+    <div class="halo"></div>
+    <div class="blackout" data-fade style="opacity:0"></div>
+  </div>
+</section>
+
+<!-- 7 · Locate -->
+<section class="step" id="locate">
+  <div class="stage">
+    <div class="pulse"></div><div class="pin"></div>
+    <p class="verb">Locate</p>
+    <p class="big drop"><span class="kicker">Right here</span>Weather and time for wherever you are.</p>
+    <div class="blackout" data-fade style="opacity:0"></div>
+  </div>
+</section>
+
+<!-- 8 · Calculate -->
+<section class="step" id="calc">
+  <div class="stage">
+    <p class="verb">Calculate</p>
+    <div style="text-align:center">
+      <p class="big" style="font-size:.9rem;letter-spacing:.14em;text-transform:uppercase;color:var(--fg-3);font-weight:600">Drop an apple for 30s</p>
+      <p class="readout"><span id="calcNum">0000</span><span class="unit">m</span></p>
+    </div>
+    <div class="blackout" data-fade style="opacity:0"></div>
+  </div>
+</section>
+
+<!-- 9 · Remember -->
+<section class="step" id="remember">
+  <div class="stage">
+    <p class="verb">Remember</p>
+    <div class="deck">
+      <div class="phone"><img src="assets/img/see.webp" alt=""></div>
+      <div class="phone"><img src="assets/img/hear.webp" alt=""></div>
+      <div class="phone"><img src="assets/img/read.webp" alt=""></div>
+    </div>
+    <div class="caption" data-cap><h2>Remember</h2><p>Holds context through long conversations.</p></div>
+    <div class="blackout" data-fade style="opacity:0"></div>
+  </div>
+</section>
+
+<!-- 10 · Think -->
+<section class="step" id="think">
+  <div class="stage">
+    <p class="verb">Think</p>
+    <div class="phone fold"><img src="assets/img/think.webp" alt="Thinking Mode showing visible reasoning."></div>
+    <div class="seamline"></div>
+    <div class="caption" data-cap><h2>Think</h2><p>Watch it reason through the problem, step by step.</p></div>
+    <div class="blackout" data-fade style="opacity:0"></div>
+  </div>
+</section>
+
+<!-- 11 · Know -->
+<section class="step" id="know">
+  <div class="stage">
+    <div class="bloom"></div>
+    <p class="big final"><span class="kicker">Know</span>An on-device knowledge base, for answers with no connection at all.</p>
+  </div>
+</section>
 </section>
 
 <!-- ───────────────────────── privacy ───────────────────────── -->
