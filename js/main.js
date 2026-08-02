@@ -77,25 +77,40 @@
 
     var moves = {
       chat: function (q) {                          // drive through a letterform
-        // Held readable through the arrival, then driven into the letter.
-        var z = ease(span(q,.30,.80)), c = ease(span(q,.30,.52));
-        set(chatLine,'--zoom', (1 + z * (TEXT_MAX - 1)).toFixed(3));
+        // SWITCH is the single instant the glyph hands off to the ring —
+        // one number, not several windows that each end wherever seemed
+        // right. z reaches 1 (scale = TEXT_MAX) exactly there, so the
+        // ring's starting diameter can be read directly off it instead of
+        // guessed. A mismatch here — the previous version scaled the ring
+        // from a fixed guess while the letter was still only partway to
+        // its own max size — is what made the hand-off visibly swim: ring
+        // and glyph disagreeing on how big the "o" was supposed to be at
+        // the exact moment you're meant to stop noticing the swap.
+        var SWITCH = .58, FADE = .05;
+
+        var z = ease(span(q,.30,SWITCH));
+        var scale = 1 + z * (TEXT_MAX - 1);
+        set(chatLine,'--zoom', scale.toFixed(3));
+        var c = ease(span(q,.30,SWITCH * .72));
         set(chatLine,'--tx',(drift.x*c).toFixed(1)+'px');
         set(chatLine,'--ty',(drift.y*c).toFixed(1)+'px');
-        chatLine.style.opacity = (1 - span(q,.62,.76)).toFixed(3);
+        // Fades out over the same short window the ring fades in, so the
+        // handoff is a quick dissolve rather than a long double-exposure
+        // of a font glyph and a perfect circle held at once.
+        chatLine.style.opacity = (1 - span(q,SWITCH,SWITCH+FADE)).toFixed(3);
 
-        // The ring picks the "o" up where the glyph leaves off and keeps
-        // going on geometry rather than transform, so its edge stays sharp
-        // right up to the moment it clears the screen.
-        var rt = span(q,.60,1);
+        var rt = span(q,SWITCH,1);
         if (rt <= 0) { oRing.style.opacity = '0'; return; }
+        // scale === TEXT_MAX at rt's first instant (span's own math
+        // guarantees it), so this is exactly the glyph's on-screen width
+        // the frame before it disappears — not an approximation of it.
+        var d0 = oW * TEXT_MAX;
         var diag = Math.hypot(innerWidth, innerHeight);
-        var d0 = oW * TEXT_MAX * 0.88;
         var d = d0 * Math.pow((diag * 1.6) / d0, ease(rt));
         oRing.style.width = d.toFixed(1) + 'px';
         oRing.style.height = d.toFixed(1) + 'px';
-        oRing.style.borderWidth = (d * 0.185).toFixed(1) + 'px';
-        oRing.style.opacity = span(q,.60,.68).toFixed(3);
+        oRing.style.borderWidth = (d * 0.16).toFixed(1) + 'px';
+        oRing.style.opacity = span(q,SWITCH,SWITCH+FADE).toFixed(3);
       },
       see: function (q, s) {                        // an aperture opens
         set($('.lens',s),'--slit',(50 - ease(span(q,.03,.46))*50).toFixed(2)+'%');
@@ -172,9 +187,16 @@
     /* Animations follow a smoothed scroll position rather than the live one.
        Tied directly to scroll, a fast flick completes a transition in two or
        three frames — you arrive at the end state having seen nothing move.
-       Chasing a lagged value instead gives every transition a floor on how
-       long it can take, however hard you throw the page. */
-    var TAU = 0.45;                 // ~1s to substantially settle
+       Exponential smoothing alone doesn't fix this: given a few hundred
+       milliseconds of continuous fast scrolling (an ordinary flick, not an
+       artificial instant jump) it has time to almost fully catch up, so the
+       transition still reads as instant. A hard speed cap on the chase does
+       what smoothing can't — it bounds how fast smoothY can move in
+       px/second, so covering a step's runway takes a guaranteed minimum
+       wall-clock time no matter how the scroll itself arrives. Smoothing
+       still shapes the final approach so it decelerates into rest rather
+       than stopping on a dime. */
+    var TAU = 0.32;
     var smoothY = null, lastT = 0, running = false;
 
     /* Steps overlap by a viewport, so a stage is pinned for its whole
@@ -208,7 +230,15 @@
       var dt = lastT ? Math.min((t - lastT) / 1000, 0.05) : 1 / 60;
       lastT = t;
       var target = window.scrollY;
-      smoothY += (target - smoothY) * (1 - Math.exp(-dt / TAU));
+      var diff = target - smoothY;
+      var step = diff * (1 - Math.exp(-dt / TAU));
+      // A step's runway is ~1.5 viewport heights; this rate lets the chase
+      // cross the whole thing in ~2.4s, so no single hand-off inside it —
+      // each spans a fraction of the runway — can finish in under a second,
+      // however abruptly the actual scroll position moves.
+      var cap = window.innerHeight * 0.62 * dt;
+      if (step > cap) step = cap; else if (step < -cap) step = -cap;
+      smoothY += step;
       if (Math.abs(target - smoothY) < 0.4) { smoothY = target; running = false; }
       paint(smoothY);
       if (running) requestAnimationFrame(frame); else lastT = 0;
