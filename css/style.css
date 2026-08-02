@@ -206,7 +206,9 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 
 .hero-video {
   position: absolute;
-  inset: 0;
+  /* Run up behind the (transparent) header, or the top of the video cuts
+     against the black band above it as a hard horizontal seam. */
+  inset: -160px 0 0;
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
@@ -221,12 +223,15 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 
 /* Keeps the headline legible over footage and fades the clip out into
    the black page rather than ending on a hard edge. */
+/* Tuned to this clip: it averages ~59/255 luma, so the copy side needs
+   roughly .78 effective cover while the rest can stay light enough for the
+   footage to actually read. The two gradients multiply — allow for that. */
 .hero-scrim {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(to right, rgba(0,0,0,.92) 0%, rgba(0,0,0,.72) 42%, rgba(0,0,0,.45) 100%),
-    linear-gradient(to bottom, rgba(0,0,0,.55) 0%, transparent 28%, rgba(0,0,0,.85) 88%, #000 100%);
+    linear-gradient(to right, rgba(0,0,0,.88) 0%, rgba(0,0,0,.66) 45%, rgba(0,0,0,.38) 100%),
+    linear-gradient(to bottom, rgba(0,0,0,.28) 0%, transparent 22%, rgba(0,0,0,.8) 86%, #000 100%);
 }
 
 @media (prefers-reduced-motion: reduce) {
