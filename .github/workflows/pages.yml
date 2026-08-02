@@ -36,13 +36,27 @@ jobs:
       # upload, so they are left out of the artifact.
       - name: Stage site
         run: |
-          mkdir -p _site
+          mkdir -p _site/assets
           cp index.html _site/
           cp -r css js _site/
-          mkdir -p _site/assets
-          cp assets/favicon.svg _site/assets/
           cp -r assets/img _site/assets/
           touch _site/.nojekyll
+
+      # Every local path index.html references must exist in the staged
+      # tree. Without this a renamed or deleted asset ships as a 404.
+      - name: Verify staged assets
+        run: |
+          python3 - <<'PY'
+          import re, sys, pathlib
+          site = pathlib.Path("_site")
+          html = (site / "index.html").read_text()
+          refs = sorted(set(re.findall(r'(?:src|href)="((?!https?:|#|mailto:|data:)[^"]+)"', html)))
+          missing = [r for r in refs if not (site / r).exists()]
+          print(f"checked {len(refs)} referenced assets")
+          if missing:
+              print("MISSING FROM BUILD:", *missing, sep="\n  ")
+              sys.exit(1)
+          PY
 
       - uses: actions/upload-pages-artifact@v3
         with:
