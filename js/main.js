@@ -54,63 +54,106 @@
     var span  = function (p, a, b) { return clamp((p - a) / (b - a), 0, 1); };
     var set   = function (el, k, v) { el.style.setProperty(k, v); };
 
-    var chatLine = $('#chatLine', root), chatO = $('#chatO', root), oRing = $('#oRing', root);
-    var drift = { x: 0, y: 0 }, oW = 0;
+    var chatSvg    = $('#chatSvg', root),
+        chatKicker = $('#chatKicker', root),
+        chatL1     = $('#chatL1', root),
+        chatL2     = $('#chatL2', root);
+    var zoom = null;   // fitted type + the letter to fly into, filled by measure()
 
-    // Where the glyph hands over to the ring. Text is only scaled this far
-    // because past a few multiples it is a stretched bitmap, not type.
-    var TEXT_MAX = 5;
+    /* Lay the three lines out in user units for a W x H viewBox. Called
+       repeatedly while fitting, so it must be a pure function of fs. */
+    function layout(fs, W, H) {
+      var lh = fs * 1.16, kfs = Math.max(10, fs * .34), gap = fs * .52;
+      var top = H / 2 - (kfs + gap + lh * 2) / 2;
+      var base = top + kfs + gap + fs * .8;
+      chatKicker.style.fontSize = kfs.toFixed(2) + 'px';
+      chatL1.style.fontSize = chatL2.style.fontSize = fs.toFixed(2) + 'px';
+      chatKicker.setAttribute('x', (W/2).toFixed(1)); chatKicker.setAttribute('y', (top + kfs).toFixed(1));
+      chatL1.setAttribute('x', (W/2).toFixed(1));     chatL1.setAttribute('y', base.toFixed(1));
+      chatL2.setAttribute('x', (W/2).toFixed(1));     chatL2.setAttribute('y', (base + lh).toFixed(1));
+      return base + lh;
+    }
 
     function measure() {
-      if (!chatLine || !chatO) return;
-      set(chatLine, '--zoom', '1'); set(chatLine, '--tx', '0px'); set(chatLine, '--ty', '0px');
-      var lr = chatLine.getBoundingClientRect(), or_ = chatO.getBoundingClientRect();
-      set(chatLine, '--ox', ((or_.left + or_.width/2 - lr.left) / lr.width * 100).toFixed(2) + '%');
-      set(chatLine, '--oy', ((or_.top + or_.height*0.52 - lr.top) / lr.height * 100).toFixed(2) + '%');
-      // Scaling about the letter pins it where it sits, so the zoom would
-      // head into a corner. Measure its offset from the stage centre.
-      var st = chatLine.closest('.stage').getBoundingClientRect();
-      drift.x = (st.left + st.width/2) - (or_.left + or_.width/2);
-      drift.y = (st.top + st.height/2) - (or_.top + or_.height*0.52);
-      oW = or_.width;
+      if (!chatSvg || !chatL2) return;
+      var r = chatSvg.getBoundingClientRect();
+      var W = Math.round(r.width), H = Math.round(r.height);
+      if (W < 2 || H < 2) return;
+
+      // One user unit to one CSS pixel at rest, so the type here matches the
+      // scale of the rest of the walkthrough instead of needing its own.
+      chatSvg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+
+      var fs = Math.max(22, Math.min(W * .085, 48)), base = 0;
+      for (var i = 0; i < 5; i++) {
+        base = layout(fs, W, H);
+        var widest = Math.max(chatL1.getComputedTextLength(), chatL2.getComputedTextLength());
+        if (widest <= W * .88) break;
+        fs *= (W * .88) / widest;                // shrink to fit rather than overrun
+      }
+
+      // How big the letter actually is, in ink. Neither getExtentOfChar nor
+      // getBBox answers this: both report the advance box — glyph plus side
+      // bearings, em ascent to descent — which for a lowercase "o" is about
+      // twice as tall as the ring you can see. Sizing the zoom off that
+      // stops it a full doubling short of clearing the frame. Canvas is the
+      // one API that returns tight bounds, so ask it.
+      var cs = getComputedStyle(chatL2);
+      var mx = document.createElement('canvas').getContext('2d');
+      mx.font = cs.fontStyle + ' ' + cs.fontWeight + ' ' + fs.toFixed(2) + 'px ' + cs.fontFamily;
+      var m = mx.measureText('o');
+      var inkW, inkH, inkMid;
+      if (typeof m.actualBoundingBoxAscent === 'number') {
+        inkW = m.actualBoundingBoxLeft + m.actualBoundingBoxRight;
+        inkH = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
+        inkMid = (m.actualBoundingBoxDescent - m.actualBoundingBoxAscent) / 2;   // from the baseline
+      } else {
+        inkW = m.width * .86; inkH = fs * .53; inkMid = -fs * .26;
+      }
+      if (!(inkW > 0) || !(inkH > 0)) return;
+
+      var idx = Math.max(chatL2.textContent.indexOf('o'), 0);
+      var ext = chatL2.getExtentOfChar(idx);
+
+      // The frame has cleared the letter once it fits inside the ink on both
+      // axes; on a tall phone the vertical crossing is much the later of the
+      // two, so it sets the depth. Then carry on past it, far enough that the
+      // stroke is well gone and the counter — black, like the page — is all
+      // that is left to hand over to the next step.
+      var clear = Math.min(inkW, inkH * (W / H));
+      zoom = {
+        W: W, H: H,
+        cx: ext.x + ext.width / 2,
+        cy: base + inkMid,                      // ink centre, not the baseline
+        vwEnd: Math.max(clear * .45, 0.02)
+      };
     }
+
+    /* Ease in, then hold a constant rate. Paired with the geometric zoom
+       below this reads as a steady push down a tunnel. A symmetric ease
+       would decelerate into the end instead, which here means idling
+       inside the letter — on a black screen — for the last fifth of the
+       scroll, which is exactly the dead space the runways were shortened
+       to remove. */
+    function zin(r) { var k = .30; return (r < k ? r*r/(2*k) : r - k/2) / (1 - k/2); }
 
     var moves = {
       chat: function (q) {                          // drive through a letterform
-        // SWITCH is the single instant the glyph hands off to the ring —
-        // one number, not several windows that each end wherever seemed
-        // right. z reaches 1 (scale = TEXT_MAX) exactly there, so the
-        // ring's starting diameter can be read directly off it instead of
-        // guessed. A mismatch here — the previous version scaled the ring
-        // from a fixed guess while the letter was still only partway to
-        // its own max size — is what made the hand-off visibly swim: ring
-        // and glyph disagreeing on how big the "o" was supposed to be at
-        // the exact moment you're meant to stop noticing the swap.
-        var SWITCH = .58, FADE = .05;
-
-        var z = ease(span(q,.30,SWITCH));
-        var scale = 1 + z * (TEXT_MAX - 1);
-        set(chatLine,'--zoom', scale.toFixed(3));
-        var c = ease(span(q,.30,SWITCH * .72));
-        set(chatLine,'--tx',(drift.x*c).toFixed(1)+'px');
-        set(chatLine,'--ty',(drift.y*c).toFixed(1)+'px');
-        // Fades out over the same short window the ring fades in, so the
-        // handoff is a quick dissolve rather than a long double-exposure
-        // of a font glyph and a perfect circle held at once.
-        chatLine.style.opacity = (1 - span(q,SWITCH,SWITCH+FADE)).toFixed(3);
-
-        var rt = span(q,SWITCH,1);
-        if (rt <= 0) { oRing.style.opacity = '0'; return; }
-        // scale === TEXT_MAX at rt's first instant (span's own math
-        // guarantees it), so this is exactly the glyph's on-screen width
-        // the frame before it disappears — not an approximation of it.
-        var d0 = oW * TEXT_MAX;
-        var diag = Math.hypot(innerWidth, innerHeight);
-        var d = d0 * Math.pow((diag * 1.6) / d0, ease(rt));
-        oRing.style.width = d.toFixed(1) + 'px';
-        oRing.style.height = d.toFixed(1) + 'px';
-        oRing.style.borderWidth = (d * 0.16).toFixed(1) + 'px';
-        oRing.style.opacity = span(q,SWITCH,SWITCH+FADE).toFixed(3);
+        if (!zoom) return;
+        var r = span(q, .24, 1), t = zin(r);
+        // Geometric, not linear: equal scroll buys equal magnification, so
+        // the approach holds one apparent speed instead of crawling for
+        // most of the runway and then lunging the last few percent.
+        var vw = zoom.W * Math.pow(zoom.vwEnd / zoom.W, t);
+        var vh = vw * (zoom.H / zoom.W);
+        // Lock onto the letter over the first half; after that it is
+        // dead ahead and the move is a straight push in.
+        var c = ease(clamp(r / .5, 0, 1));
+        var cx = zoom.W / 2 + (zoom.cx - zoom.W / 2) * c;
+        var cy = zoom.H / 2 + (zoom.cy - zoom.H / 2) * c;
+        chatSvg.setAttribute('viewBox',
+          (cx - vw/2).toFixed(3) + ' ' + (cy - vh/2).toFixed(3) + ' ' +
+          vw.toFixed(3) + ' ' + vh.toFixed(3));
       },
       see: function (q, s) {                        // an aperture opens
         set($('.lens',s),'--slit',(50 - ease(span(q,.03,.46))*50).toFixed(2)+'%');
@@ -179,9 +222,15 @@
       }
     };
 
+    /* Most steps hold their label until the screen is nearly black. Chat
+       ends inside a letter that fills the frame in white, and grey type on
+       white is unreadable, so its label leaves before the flare. */
+    var capOut = { chat: [.70, .79] };
+
     var steps = [].slice.call(root.querySelectorAll('.step')).map(function (el) {
       return { el: el, stage: $('.stage', el), fade: $('[data-fade]', el),
-               cap: $('[data-cap]', el), move: moves[el.id] };
+               cap: $('[data-cap]', el), move: moves[el.id],
+               co: capOut[el.id] || [.86, .96] };
     });
 
     /* Animations follow a smoothed scroll position rather than the live one.
@@ -222,7 +271,7 @@
         // Black is now only the last sliver, where one step has finished
         // and the next has already taken over the screen.
         if (s.fade) s.fade.style.opacity = span(q,.94,1).toFixed(3);
-        if (s.cap)  s.cap.style.opacity  = (span(q,.08,.22) * (1 - span(q,.86,.96))).toFixed(3);
+        if (s.cap)  s.cap.style.opacity  = (span(q,.08,.22) * (1 - span(q,s.co[0],s.co[1]))).toFixed(3);
       }
     }
 

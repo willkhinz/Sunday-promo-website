@@ -89,13 +89,21 @@
 <!-- 1 · Chat -->
 <section class="step" id="chat">
   <div class="stage">
-    <p class="big line" id="chatLine">
-      <span class="kicker">You asked</span>
-      explain why my s<span id="chatO">o</span>urdough didn't rise
-    </p>
-    <div class="o-ring" id="oRing" aria-hidden="true"></div>
-  </div>
+    <!-- The zoom drives this viewBox, so the letterform is re-rendered as
+         paths at every magnification instead of being a stretched bitmap.
+         No second shape stands in for the "o", so nothing can disagree
+         with it about where the letter is or what size it should be.
+         The viewBox authored here is the still fallback for when no scroll
+         driver runs; measure() replaces it with one unit per pixel. -->
+    <svg class="zoomtype" id="chatSvg" viewBox="0 0 400 210"
+         preserveAspectRatio="xMidYMid meet" aria-labelledby="chatSvgTitle">
+      <title id="chatSvgTitle">You asked: explain why my sourdough didn't rise</title>
+      <text class="zt-kicker" id="chatKicker" x="200" y="45" text-anchor="middle">YOU ASKED</text>
+      <text class="zt-line" id="chatL1" x="200" y="120" text-anchor="middle">explain why my</text>
+      <text class="zt-line" id="chatL2" x="200" y="162" text-anchor="middle">sourdough didn't rise</text>
+    </svg>
     <div class="caption" data-cap><p class="verb">Chat</p></div>
+  </div>
 </section>
 
 <!-- 2 · See -->

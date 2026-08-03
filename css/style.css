@@ -719,24 +719,29 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   color: var(--fg-3); margin-bottom: 16px; font-weight: 600;
 }
 
-/* 1 · Chat — drive through the counter of a letter */
-#walk #chat .line {
-  transform: translate(var(--tx,0px), var(--ty,0px)) scale(var(--zoom,1));
-  transform-origin: var(--ox,50%) var(--oy,50%);
-  will-change: transform;
+/* 1 · Chat — drive through the counter of a letter.
+   Scaling text by transform rasterises it once and stretches the result,
+   so it turns to mush a few multiples in. Driving the viewBox instead is
+   a geometry change: the browser re-renders the outline as paths at every
+   magnification, so the letter stays sharp all the way through — and
+   since the real glyph carries the whole move, there is no stand-in shape
+   that can disagree with it about where the "o" is or how big it is. */
+#walk #chat .zoomtype {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  display: block;
 }
-
-/* Past a few multiples, scaled text is just a stretched bitmap. The ring
-   takes over from the glyph and grows by width/height instead of
-   transform, so it re-paints at full resolution however large it gets. */
-#walk #chat .o-ring {
-  position: absolute;
-  left: 50%; top: 50%;
-  translate: -50% -50%;
-  border-radius: 50%;
-  border: 0 solid #fff;
-  opacity: 0;
-  pointer-events: none;
+#walk #chat .zt-line {
+  fill: #fff;
+  font-size: 34px;              /* placeholder; measure() fits it to the stage */
+  font-weight: 700;
+  letter-spacing: -.04em;
+}
+#walk #chat .zt-kicker {
+  fill: var(--fg-3);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .14em;
 }
 
 /* 2 · See — an aperture opens */
@@ -831,9 +836,15 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 @media (prefers-reduced-motion: reduce) {
   /* No scroll driver runs, so the frame must not stay folded shut. */
   .hero-shot .phone { transform: none !important; opacity: 1 !important; }
-  #walk #chat .o-ring { display: none !important; }
-  #walk #chat .line { opacity: 1 !important; }
-  #walk .step { height: auto !important; }
+  /* No scroll driver, so the viewBox keeps its authored value and the SVG
+     just lays the question out and sits still. A definite width — not a
+     percentage — or the auto grid track sizes to the viewBox's own 400px
+     and pushes the line off the side of a narrow screen. */
+  #walk #chat .zoomtype { position: static; width: 86vw; height: auto; }
+  /* The steps deliberately overlap by a viewport so a pinned stage hands
+     straight over to the next one. Nothing is pinned here, so that margin
+     would just pile all eleven sections on top of each other. */
+  #walk .step { height: auto !important; margin-bottom: 0 !important; }
   #walk .stage { position: static; height: auto; padding-block: 60px; gap: 24px; }
   #walk .stage > * { transform: none !important; clip-path: none !important; opacity: 1 !important;
                      -webkit-mask-image: none !important; mask-image: none !important; }
