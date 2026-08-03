@@ -89,6 +89,7 @@
     }
 
     function measure() {
+      measureSteps();
       measureLocate();
       if (!chatSvg || !chatL2) return;
       var r = chatSvg.getBoundingClientRect();
@@ -246,8 +247,24 @@
     var steps = [].slice.call(root.querySelectorAll('.step')).map(function (el) {
       return { el: el, stage: $('.stage', el), fade: $('[data-fade]', el),
                cap: $('[data-cap]', el), move: moves[el.id],
-               co: capOut[el.id] || [.86, .96] };
+               co: capOut[el.id] || [.86, .96], top: 0, runway: 0 };
     });
+
+    /* Each step's position in the document, so the paint loop can work off
+       the smoothed scroll position alone. Reading live rects there would
+       reintroduce the real scroll position through the back door. */
+    var walkTop = 0, walkEnd = 0;
+
+    function measureSteps() {
+      var vh = window.innerHeight, sy = window.scrollY;
+      steps.forEach(function (s) {
+        var r = s.el.getBoundingClientRect();
+        s.top = r.top + sy;
+        s.runway = r.height - vh;
+      });
+      walkTop = steps[0].top;
+      walkEnd = steps[steps.length - 1].top + steps[steps.length - 1].runway;
+    }
 
     /* Animations follow a smoothed scroll position rather than the live one.
        Tied directly to scroll, a fast flick completes a transition in two or
@@ -264,46 +281,70 @@
     var TAU = 0.32;
     var smoothY = null, lastT = 0, running = false;
 
-    /* Steps overlap by a viewport, so a stage is pinned for its whole
-       effective length and hands straight over to the next. Progress is
-       therefore just position through that pinned run. */
+    /* Steps sit end to end along the runway, so exactly one is ever in play.
+       Whichever the smoothed position is inside gets pinned and painted;
+       the rest are hidden.
+
+       The pin is `fixed`, not the stylesheet's `sticky`, and that is the
+       whole point. A sticky stage is only pinned while the real scroll is
+       inside its own section — so a hard flick scrolls the step clean off
+       the top of the screen while its transition is still at 1%, and the
+       forced pace plays out on something nobody can see. Fixed takes the
+       active stage out of the scroll entirely: it stays on screen until
+       its transition has actually finished, however fast the page moved. */
     function paint(y) {
-      var vh = window.innerHeight, sy = window.scrollY;
+      var active = -1, aq = 0;
       for (var i = 0; i < steps.length; i++) {
-        var s = steps[i], r = s.el.getBoundingClientRect();
-        if (r.bottom < -vh || r.top > vh * 2) continue;   // nowhere near the viewport
-        var runway = r.height - vh;
-        if (runway <= 0) continue;
-        // Off the smoothed position, not the live rect.
-        var raw = (y - (r.top + sy)) / runway;
-        // Overlapping the steps means the next stage is already sliding up
-        // behind the current one; show a stage only across its own run or it
-        // bleeds into its neighbour.
-        var live = raw > -0.002 && raw < 1.002;
-        if (s.stage) s.stage.style.visibility = live ? 'visible' : 'hidden';
-        if (!live) continue;
-        var q = clamp(raw, 0, 1);
-        if (s.move) s.move(q, s.el);
-        // Black is now only the last sliver, where one step has finished
-        // and the next has already taken over the screen.
-        if (s.fade) s.fade.style.opacity = span(q,.96,1).toFixed(3);
-        if (s.cap)  s.cap.style.opacity  = (span(q,.08,.22) * (1 - span(q,s.co[0],s.co[1]))).toFixed(3);
+        var s = steps[i];
+        if (s.runway <= 0) continue;
+        var raw = (y - s.top) / s.runway;
+        if (raw >= 0 && raw < 1) { active = i; aq = raw; }
+      }
+      for (i = 0; i < steps.length; i++) {
+        var st = steps[i], on = (i === active);
+        if (st.stage) {
+          st.stage.style.visibility = on ? 'visible' : 'hidden';
+          st.stage.classList.toggle('is-pinned', on);
+        }
+        if (!on) continue;
+        var q = clamp(aq, 0, 1);
+        if (st.move) st.move(q, st.el);
+        if (st.fade) st.fade.style.opacity = span(q,.96,1).toFixed(3);
+        if (st.cap)  st.cap.style.opacity  = (span(q,.08,.22) * (1 - span(q,st.co[0],st.co[1]))).toFixed(3);
       }
     }
+
+    /* How far the animation may fall behind the real scroll, in steps.
+       Generous on purpose: falling behind is how a transition keeps its
+       pace when someone flings the page, and the pinned stage means the
+       backlog plays out on screen rather than off it. Bounded so a fling
+       inside the walkthrough cannot leave minutes of animation queued. */
+    var MAXLAG = 3;
 
     function frame(t) {
       var dt = lastT ? Math.min((t - lastT) / 1000, 0.05) : 1 / 60;
       lastT = t;
       var target = window.scrollY;
-      var diff = target - smoothY;
-      var step = diff * (1 - Math.exp(-dt / TAU));
-      // A step's runway is ~1.5 viewport heights; this rate lets the chase
-      // cross the whole thing in ~2.4s, so no single hand-off inside it —
-      // each spans a fraction of the runway — can finish in under a second,
-      // however abruptly the actual scroll position moves.
-      var cap = window.innerHeight * 0.62 * dt;
-      if (step > cap) step = cap; else if (step < -cap) step = -cap;
-      smoothY += step;
+
+      if (target < walkTop - 4 || target > walkEnd + 4) {
+        // Scrolled clean out of the walkthrough. Snap, or a pinned stage
+        // would sit over whatever is actually on screen now.
+        smoothY = target;
+      } else {
+        var lag = steps[0].runway * MAXLAG;
+        if (target - smoothY > lag) smoothY = target - lag;
+        else if (smoothY - target > lag) smoothY = target + lag;
+        var diff = target - smoothY;
+        var step = diff * (1 - Math.exp(-dt / TAU));
+        // A step's runway is ~1.5 viewport heights; this rate lets the chase
+        // cross the whole thing in ~2.4s, so no single hand-off inside it —
+        // each spans a fraction of the runway — can finish in under a second,
+        // however abruptly the actual scroll position moves.
+        var cap = window.innerHeight * 0.62 * dt;
+        if (step > cap) step = cap; else if (step < -cap) step = -cap;
+        smoothY += step;
+      }
+
       if (Math.abs(target - smoothY) < 0.4) { smoothY = target; running = false; }
       paint(smoothY);
       if (running) requestAnimationFrame(frame); else lastT = 0;

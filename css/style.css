@@ -694,6 +694,17 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   padding: var(--pad-t) var(--gut) var(--pad-b);
 }
 
+/* The active stage is pinned out of the scroll entirely. Sticky only holds
+   while the real scroll is inside the step's own section, so a fast flick
+   pulls the step off screen mid-transition; fixed keeps it there until the
+   transition has actually finished. Sticky above stays as the no-JS and
+   reduced-motion fallback. */
+#walk .stage.is-pinned {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 20;
+}
+
 /* Sits with its description at the foot of the step. Pinning it in the
    corner crowded the frame once the frames filled the screen. */
 #walk .verb {
