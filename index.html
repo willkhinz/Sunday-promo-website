@@ -89,13 +89,21 @@
 <!-- 1 · Chat -->
 <section class="step" id="chat">
   <div class="stage">
-    <p class="big line" id="chatLine">
-      <span class="kicker">You asked</span>
-      explain why my s<span id="chatO">o</span>urdough didn't rise
-    </p>
-    <div class="o-ring" id="oRing" aria-hidden="true"></div>
-  </div>
+    <!-- The zoom drives this viewBox, so the letterform is re-rendered as
+         paths at every magnification instead of being a stretched bitmap.
+         No second shape stands in for the "o", so nothing can disagree
+         with it about where the letter is or what size it should be.
+         The viewBox authored here is the still fallback for when no scroll
+         driver runs; measure() replaces it with one unit per pixel. -->
+    <svg class="zoomtype" id="chatSvg" viewBox="0 0 400 210"
+         preserveAspectRatio="xMidYMid meet" aria-labelledby="chatSvgTitle">
+      <title id="chatSvgTitle">You asked: explain why my sourdough didn't rise</title>
+      <text class="zt-kicker" id="chatKicker" x="200" y="45" text-anchor="middle">YOU ASKED</text>
+      <text class="zt-line" id="chatL1" x="200" y="120" text-anchor="middle">explain why my</text>
+      <text class="zt-line" id="chatL2" x="200" y="162" text-anchor="middle">sourdough didn't rise</text>
+    </svg>
     <div class="caption" data-cap><p class="verb">Chat</p></div>
+  </div>
 </section>
 
 <!-- 2 · See -->
@@ -124,7 +132,7 @@
   <div class="stage">
     <div class="strip">
       <div class="phone"><img src="assets/img/see.webp" alt=""></div>
-      <div class="phone is-hero"><img src="assets/img/watch.webp" alt="Sunday identifying architecture from a video."></div>
+      <div class="phone is-hero"><img src="assets/img/watch.webp" alt="Sunday working through a video frame by frame — watching 0:01, frame 2 of 8."></div>
       <div class="phone"><img src="assets/img/read.webp" alt=""></div>
     </div>
     <div class="caption" data-cap><p class="verb">Watch</p><p>Video, sampled frame by frame, then summarised.</p></div>
@@ -157,8 +165,11 @@
 <!-- 7 · Locate -->
 <section class="step" id="locate">
   <div class="stage">
-    <div class="pulse"></div><div class="pin"></div>
-    <p class="big drop"><span class="kicker">Right here</span>Weather and time for wherever you are.</p>
+    <!-- Four corner brackets fly in from off-screen and close on the line,
+         like a viewfinder acquiring a fix. Every other step in the
+         walkthrough opens outward; this is the one that converges. -->
+    <div class="reticle" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <p class="big fix"><span class="kicker">Right here</span>Weather and time for wherever you are.</p>
     <div class="caption" data-cap><p class="verb">Locate</p></div>
     <div class="blackout" data-fade style="opacity:0"></div>
   </div>

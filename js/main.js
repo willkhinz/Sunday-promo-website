@@ -54,90 +54,149 @@
     var span  = function (p, a, b) { return clamp((p - a) / (b - a), 0, 1); };
     var set   = function (el, k, v) { el.style.setProperty(k, v); };
 
-    var chatLine = $('#chatLine', root), chatO = $('#chatO', root), oRing = $('#oRing', root);
-    var drift = { x: 0, y: 0 }, oW = 0;
+    var chatSvg    = $('#chatSvg', root),
+        chatKicker = $('#chatKicker', root),
+        chatL1     = $('#chatL1', root),
+        chatL2     = $('#chatL2', root);
+    var zoom = null;   // fitted type + the letter to fly into, filled by measure()
+    var loc  = null;   // the reticle's open and closed boxes, filled by measure()
 
-    // Where the glyph hands over to the ring. Text is only scaled this far
-    // because past a few multiples it is a stretched bitmap, not type.
-    var TEXT_MAX = 5;
+    /* Where Locate's viewfinder starts and where it lands. The open box is
+       the free area of the stage inset a little, so the corners begin at
+       the screen edges; the closed box is a frame around the copy. */
+    function measureLocate() {
+      var ret = $('#locate .reticle', root);
+      if (!ret) return;
+      var st = ret.parentNode, cs = getComputedStyle(st);
+      var free = st.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      var w1 = Math.min(st.clientWidth * .90, 360);
+      loc = { w0: st.clientWidth - 26, h0: Math.max(free - 22, 240),
+              w1: w1, h1: Math.min(w1 * .60, free - 60) };
+    }
+
+    /* Lay the three lines out in user units for a W x H viewBox. Called
+       repeatedly while fitting, so it must be a pure function of fs. */
+    function layout(fs, W, H) {
+      var lh = fs * 1.16, kfs = Math.max(10, fs * .34), gap = fs * .52;
+      var top = H / 2 - (kfs + gap + lh * 2) / 2;
+      var base = top + kfs + gap + fs * .8;
+      chatKicker.style.fontSize = kfs.toFixed(2) + 'px';
+      chatL1.style.fontSize = chatL2.style.fontSize = fs.toFixed(2) + 'px';
+      chatKicker.setAttribute('x', (W/2).toFixed(1)); chatKicker.setAttribute('y', (top + kfs).toFixed(1));
+      chatL1.setAttribute('x', (W/2).toFixed(1));     chatL1.setAttribute('y', base.toFixed(1));
+      chatL2.setAttribute('x', (W/2).toFixed(1));     chatL2.setAttribute('y', (base + lh).toFixed(1));
+      return base + lh;
+    }
 
     function measure() {
-      if (!chatLine || !chatO) return;
-      set(chatLine, '--zoom', '1'); set(chatLine, '--tx', '0px'); set(chatLine, '--ty', '0px');
-      var lr = chatLine.getBoundingClientRect(), or_ = chatO.getBoundingClientRect();
-      set(chatLine, '--ox', ((or_.left + or_.width/2 - lr.left) / lr.width * 100).toFixed(2) + '%');
-      set(chatLine, '--oy', ((or_.top + or_.height*0.52 - lr.top) / lr.height * 100).toFixed(2) + '%');
-      // Scaling about the letter pins it where it sits, so the zoom would
-      // head into a corner. Measure its offset from the stage centre.
-      var st = chatLine.closest('.stage').getBoundingClientRect();
-      drift.x = (st.left + st.width/2) - (or_.left + or_.width/2);
-      drift.y = (st.top + st.height/2) - (or_.top + or_.height*0.52);
-      oW = or_.width;
+      measureSteps();
+      measureLocate();
+      if (!chatSvg || !chatL2) return;
+      var r = chatSvg.getBoundingClientRect();
+      var W = Math.round(r.width), H = Math.round(r.height);
+      if (W < 2 || H < 2) return;
+
+      // One user unit to one CSS pixel at rest, so the type here matches the
+      // scale of the rest of the walkthrough instead of needing its own.
+      chatSvg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+
+      var fs = Math.max(22, Math.min(W * .085, 48)), base = 0;
+      for (var i = 0; i < 5; i++) {
+        base = layout(fs, W, H);
+        var widest = Math.max(chatL1.getComputedTextLength(), chatL2.getComputedTextLength());
+        if (widest <= W * .88) break;
+        fs *= (W * .88) / widest;                // shrink to fit rather than overrun
+      }
+
+      // How big the letter actually is, in ink. Neither getExtentOfChar nor
+      // getBBox answers this: both report the advance box — glyph plus side
+      // bearings, em ascent to descent — which for a lowercase "o" is about
+      // twice as tall as the ring you can see. Sizing the zoom off that
+      // stops it a full doubling short of clearing the frame. Canvas is the
+      // one API that returns tight bounds, so ask it.
+      var cs = getComputedStyle(chatL2);
+      var mx = document.createElement('canvas').getContext('2d');
+      mx.font = cs.fontStyle + ' ' + cs.fontWeight + ' ' + fs.toFixed(2) + 'px ' + cs.fontFamily;
+      var m = mx.measureText('o');
+      var inkW, inkH, inkMid;
+      if (typeof m.actualBoundingBoxAscent === 'number') {
+        inkW = m.actualBoundingBoxLeft + m.actualBoundingBoxRight;
+        inkH = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
+        inkMid = (m.actualBoundingBoxDescent - m.actualBoundingBoxAscent) / 2;   // from the baseline
+      } else {
+        inkW = m.width * .86; inkH = fs * .53; inkMid = -fs * .26;
+      }
+      if (!(inkW > 0) || !(inkH > 0)) return;
+
+      var idx = Math.max(chatL2.textContent.indexOf('o'), 0);
+      var ext = chatL2.getExtentOfChar(idx);
+
+      // The frame has cleared the letter once it fits inside the ink on both
+      // axes; on a tall phone the vertical crossing is much the later of the
+      // two, so it sets the depth. Then carry on past it, far enough that the
+      // stroke is well gone and the counter — black, like the page — is all
+      // that is left to hand over to the next step.
+      var clear = Math.min(inkW, inkH * (W / H));
+      zoom = {
+        W: W, H: H,
+        cx: ext.x + ext.width / 2,
+        cy: base + inkMid,                      // ink centre, not the baseline
+        vwEnd: Math.max(clear * .45, 0.02)
+      };
     }
+
+    /* Ease in, then hold a constant rate. Paired with the geometric zoom
+       below this reads as a steady push down a tunnel. A symmetric ease
+       would decelerate into the end instead, which here means idling
+       inside the letter — on a black screen — for the last fifth of the
+       scroll, which is exactly the dead space the runways were shortened
+       to remove. */
+    function zin(r) { var k = .30; return (r < k ? r*r/(2*k) : r - k/2) / (1 - k/2); }
 
     var moves = {
       chat: function (q) {                          // drive through a letterform
-        // SWITCH is the single instant the glyph hands off to the ring —
-        // one number, not several windows that each end wherever seemed
-        // right. z reaches 1 (scale = TEXT_MAX) exactly there, so the
-        // ring's starting diameter can be read directly off it instead of
-        // guessed. A mismatch here — the previous version scaled the ring
-        // from a fixed guess while the letter was still only partway to
-        // its own max size — is what made the hand-off visibly swim: ring
-        // and glyph disagreeing on how big the "o" was supposed to be at
-        // the exact moment you're meant to stop noticing the swap.
-        var SWITCH = .58, FADE = .05;
-
-        var z = ease(span(q,.30,SWITCH));
-        var scale = 1 + z * (TEXT_MAX - 1);
-        set(chatLine,'--zoom', scale.toFixed(3));
-        var c = ease(span(q,.30,SWITCH * .72));
-        set(chatLine,'--tx',(drift.x*c).toFixed(1)+'px');
-        set(chatLine,'--ty',(drift.y*c).toFixed(1)+'px');
-        // Fades out over the same short window the ring fades in, so the
-        // handoff is a quick dissolve rather than a long double-exposure
-        // of a font glyph and a perfect circle held at once.
-        chatLine.style.opacity = (1 - span(q,SWITCH,SWITCH+FADE)).toFixed(3);
-
-        var rt = span(q,SWITCH,1);
-        if (rt <= 0) { oRing.style.opacity = '0'; return; }
-        // scale === TEXT_MAX at rt's first instant (span's own math
-        // guarantees it), so this is exactly the glyph's on-screen width
-        // the frame before it disappears — not an approximation of it.
-        var d0 = oW * TEXT_MAX;
-        var diag = Math.hypot(innerWidth, innerHeight);
-        var d = d0 * Math.pow((diag * 1.6) / d0, ease(rt));
-        oRing.style.width = d.toFixed(1) + 'px';
-        oRing.style.height = d.toFixed(1) + 'px';
-        oRing.style.borderWidth = (d * 0.16).toFixed(1) + 'px';
-        oRing.style.opacity = span(q,SWITCH,SWITCH+FADE).toFixed(3);
+        if (!zoom) return;
+        var r = span(q, .24, 1), t = zin(r);
+        // Geometric, not linear: equal scroll buys equal magnification, so
+        // the approach holds one apparent speed instead of crawling for
+        // most of the runway and then lunging the last few percent.
+        var vw = zoom.W * Math.pow(zoom.vwEnd / zoom.W, t);
+        var vh = vw * (zoom.H / zoom.W);
+        // Lock onto the letter over the first half; after that it is
+        // dead ahead and the move is a straight push in.
+        var c = ease(clamp(r / .5, 0, 1));
+        var cx = zoom.W / 2 + (zoom.cx - zoom.W / 2) * c;
+        var cy = zoom.H / 2 + (zoom.cy - zoom.H / 2) * c;
+        chatSvg.setAttribute('viewBox',
+          (cx - vw/2).toFixed(3) + ' ' + (cy - vh/2).toFixed(3) + ' ' +
+          vw.toFixed(3) + ' ' + vh.toFixed(3));
       },
       see: function (q, s) {                        // an aperture opens
-        set($('.lens',s),'--slit',(50 - ease(span(q,.03,.46))*50).toFixed(2)+'%');
+        set($('.lens',s),'--slit',(50 - ease(span(q,0,.46))*50).toFixed(2)+'%');
       },
       hear: function (q, s) {                       // a ripple spreads outward
-        set($('.ripple',s),'--r',(ease(span(q,.03,.44))*82).toFixed(1)+'%');
+        set($('.ripple',s),'--r',(ease(span(q,0,.44))*82).toFixed(1)+'%');
         [].forEach.call(s.querySelectorAll('.ring'), function (r, i) {
-          var t = span(q, .03 + i*.06, .42 + i*.06);
+          var t = span(q, i*.06, .42 + i*.06);
           set(r,'--rs',(t*3.4).toFixed(2));
           set(r,'--ro',(Math.sin(t*Math.PI)*.5).toFixed(2));
         });
       },
       watch: function (q, s) {                      // frames flick past, one settles
         var strip = $('.strip',s), w = strip.firstElementChild.offsetWidth + 14;
-        var t = ease(span(q,.03,.48));
+        var t = ease(span(q,0,.48));
         set(strip,'--sx',((1-t)*w*1.9).toFixed(1)+'px');
         set(strip,'--so',(.1 + t*.28).toFixed(2));
       },
       read: function (q, s) {                       // lines reveal down the page
-        var t = ease(span(q,.04,.50));
+        var t = ease(span(q,0,.50));
         set($('.phone',s),'--unread',((1-t)*100).toFixed(1)+'%');
         var rule = $('.rule',s);
         set(rule,'--ruleY',(t*100).toFixed(1)+'%');
         set(rule,'--ruleO',(Math.sin(clamp(t,0,1)*Math.PI)*.9).toFixed(2));
       },
       search: function (q, s) {                     // a lens sweeps, then opens out
-        var t = span(q,.03,.56);
+        var t = span(q,0,.56);
         // Hold the lens small while it travels, or it covers the viewport
         // before the sweep is legible; only widen once it has crossed.
         var sweep = ease(clamp(t/.72,0,1)), open = ease(clamp((t-.72)/.28,0,1));
@@ -148,41 +207,64 @@
         set(halo,'--lens',r.toFixed(0)+'px'); set(halo,'--lx',lx.toFixed(1)+'%');
         set(halo,'--haloO',((1-open)*.75).toFixed(2));
       },
-      locate: function (q, s) {                     // drops in and settles on a pin
-        var t = outc(span(q,.03,.44));
-        set($('.drop',s),'--dy',((1-t)*-55).toFixed(1)+'vh');
-        var k = span(q,.34,.50), qq = span(q,.36,.64);
-        var pin = $('.pin',s), pulse = $('.pulse',s);
-        set(pin,'--ps',k.toFixed(2)); set(pin,'--po',(k*.9).toFixed(2));
-        set(pulse,'--pulse',(qq*2.6).toFixed(2));
-        set(pulse,'--pulseO',(Math.sin(qq*Math.PI)*.6).toFixed(2));
+      locate: function (q, s) {                     // a viewfinder closing on a fix
+        if (!loc) return;
+        var ret = $('.reticle',s), t = outc(span(q,0,.48));
+        set(ret,'--rw',(loc.w0 + (loc.w1 - loc.w0) * t).toFixed(1)+'px');
+        set(ret,'--rh',(loc.h0 + (loc.h1 - loc.h0) * t).toFixed(1)+'px');
+        // The brackets are the mechanism, not the message: up quickly,
+        // then out once they have closed, leaving the line they found.
+        set(ret,'--ro',(Math.min(t/.14,1) * (1 - span(q,.56,.72))).toFixed(3));
+        set($('.fix',s),'--fxo', ease(span(q,.30,.58)).toFixed(3));
       },
       calc: function (q, s) {                       // counts up to the answer
         // Deliberately a count rather than a digit scramble: scroll can stop
         // anywhere, and a frozen scramble reads as a wrong answer where a
         // frozen count still reads as working.
-        $('#calcNum', s).textContent = String(Math.round(ease(span(q,.04,.52)) * 4410));
+        $('#calcNum', s).textContent = String(Math.round(ease(span(q,0,.52)) * 4410));
       },
       remember: function (q, s) {                   // earlier screens recede behind
-        set($('.deck',s),'--spread', ease(span(q,.04,.46)).toFixed(3));
+        set($('.deck',s),'--spread', ease(span(q,0,.46)).toFixed(3));
       },
       think: function (q, s) {                      // unfolds from a vertical seam
-        var t = ease(span(q,.04,.50));
+        var t = ease(span(q,0,.50));
         set($('.fold',s),'--seam',((1-t)*50).toFixed(2)+'%');
         set($('.seamline',s),'--seamO',(Math.sin(clamp(t,0,1)*Math.PI)*.9).toFixed(2));
       },
       know: function (q, s) {                       // blooms from a point of light
-        var b = span(q,.03,.40), f = span(q,.26,.56);
+        var b = span(q,0,.40), f = span(q,.26,.56);
         set($('.bloom',s),'--bs',(1 + b*b*30).toFixed(2));
         set($('.bloom',s),'--bo',Math.sin(b*Math.PI).toFixed(2));
         set($('.final',s),'--fo', f.toFixed(2));
       }
     };
 
+    /* Most steps hold their label until the screen is nearly black. Chat
+       ends inside a letter that fills the frame in white, and grey type on
+       white is unreadable, so its label leaves before the flare. */
+    var capOut = { chat: [.70, .79] };
+
     var steps = [].slice.call(root.querySelectorAll('.step')).map(function (el) {
       return { el: el, stage: $('.stage', el), fade: $('[data-fade]', el),
-               cap: $('[data-cap]', el), move: moves[el.id] };
+               cap: $('[data-cap]', el), move: moves[el.id],
+               co: capOut[el.id] || [.86, .96], top: 0, runway: 0 };
     });
+
+    /* Each step's position in the document, so the paint loop can work off
+       the smoothed scroll position alone. Reading live rects there would
+       reintroduce the real scroll position through the back door. */
+    var walkTop = 0, walkEnd = 0;
+
+    function measureSteps() {
+      var vh = window.innerHeight, sy = window.scrollY;
+      steps.forEach(function (s) {
+        var r = s.el.getBoundingClientRect();
+        s.top = r.top + sy;
+        s.runway = r.height - vh;
+      });
+      walkTop = steps[0].top;
+      walkEnd = steps[steps.length - 1].top + steps[steps.length - 1].runway;
+    }
 
     /* Animations follow a smoothed scroll position rather than the live one.
        Tied directly to scroll, a fast flick completes a transition in two or
@@ -199,46 +281,70 @@
     var TAU = 0.32;
     var smoothY = null, lastT = 0, running = false;
 
-    /* Steps overlap by a viewport, so a stage is pinned for its whole
-       effective length and hands straight over to the next. Progress is
-       therefore just position through that pinned run. */
+    /* Steps sit end to end along the runway, so exactly one is ever in play.
+       Whichever the smoothed position is inside gets pinned and painted;
+       the rest are hidden.
+
+       The pin is `fixed`, not the stylesheet's `sticky`, and that is the
+       whole point. A sticky stage is only pinned while the real scroll is
+       inside its own section — so a hard flick scrolls the step clean off
+       the top of the screen while its transition is still at 1%, and the
+       forced pace plays out on something nobody can see. Fixed takes the
+       active stage out of the scroll entirely: it stays on screen until
+       its transition has actually finished, however fast the page moved. */
     function paint(y) {
-      var vh = window.innerHeight, sy = window.scrollY;
+      var active = -1, aq = 0;
       for (var i = 0; i < steps.length; i++) {
-        var s = steps[i], r = s.el.getBoundingClientRect();
-        if (r.bottom < -vh || r.top > vh * 2) continue;   // nowhere near the viewport
-        var runway = r.height - vh;
-        if (runway <= 0) continue;
-        // Off the smoothed position, not the live rect.
-        var raw = (y - (r.top + sy)) / runway;
-        // Overlapping the steps means the next stage is already sliding up
-        // behind the current one; show a stage only across its own run or it
-        // bleeds into its neighbour.
-        var live = raw > -0.002 && raw < 1.002;
-        if (s.stage) s.stage.style.visibility = live ? 'visible' : 'hidden';
-        if (!live) continue;
-        var q = clamp(raw, 0, 1);
-        if (s.move) s.move(q, s.el);
-        // Black is now only the last sliver, where one step has finished
-        // and the next has already taken over the screen.
-        if (s.fade) s.fade.style.opacity = span(q,.94,1).toFixed(3);
-        if (s.cap)  s.cap.style.opacity  = (span(q,.08,.22) * (1 - span(q,.86,.96))).toFixed(3);
+        var s = steps[i];
+        if (s.runway <= 0) continue;
+        var raw = (y - s.top) / s.runway;
+        if (raw >= 0 && raw < 1) { active = i; aq = raw; }
+      }
+      for (i = 0; i < steps.length; i++) {
+        var st = steps[i], on = (i === active);
+        if (st.stage) {
+          st.stage.style.visibility = on ? 'visible' : 'hidden';
+          st.stage.classList.toggle('is-pinned', on);
+        }
+        if (!on) continue;
+        var q = clamp(aq, 0, 1);
+        if (st.move) st.move(q, st.el);
+        if (st.fade) st.fade.style.opacity = span(q,.96,1).toFixed(3);
+        if (st.cap)  st.cap.style.opacity  = (span(q,.08,.22) * (1 - span(q,st.co[0],st.co[1]))).toFixed(3);
       }
     }
+
+    /* How far the animation may fall behind the real scroll, in steps.
+       Generous on purpose: falling behind is how a transition keeps its
+       pace when someone flings the page, and the pinned stage means the
+       backlog plays out on screen rather than off it. Bounded so a fling
+       inside the walkthrough cannot leave minutes of animation queued. */
+    var MAXLAG = 3;
 
     function frame(t) {
       var dt = lastT ? Math.min((t - lastT) / 1000, 0.05) : 1 / 60;
       lastT = t;
       var target = window.scrollY;
-      var diff = target - smoothY;
-      var step = diff * (1 - Math.exp(-dt / TAU));
-      // A step's runway is ~1.5 viewport heights; this rate lets the chase
-      // cross the whole thing in ~2.4s, so no single hand-off inside it —
-      // each spans a fraction of the runway — can finish in under a second,
-      // however abruptly the actual scroll position moves.
-      var cap = window.innerHeight * 0.62 * dt;
-      if (step > cap) step = cap; else if (step < -cap) step = -cap;
-      smoothY += step;
+
+      if (target < walkTop - 4 || target > walkEnd + 4) {
+        // Scrolled clean out of the walkthrough. Snap, or a pinned stage
+        // would sit over whatever is actually on screen now.
+        smoothY = target;
+      } else {
+        var lag = steps[0].runway * MAXLAG;
+        if (target - smoothY > lag) smoothY = target - lag;
+        else if (smoothY - target > lag) smoothY = target + lag;
+        var diff = target - smoothY;
+        var step = diff * (1 - Math.exp(-dt / TAU));
+        // A step's runway is ~1.5 viewport heights; this rate lets the chase
+        // cross the whole thing in ~2.4s, so no single hand-off inside it —
+        // each spans a fraction of the runway — can finish in under a second,
+        // however abruptly the actual scroll position moves.
+        var cap = window.innerHeight * 0.62 * dt;
+        if (step > cap) step = cap; else if (step < -cap) step = -cap;
+        smoothY += step;
+      }
+
       if (Math.abs(target - smoothY) < 0.4) { smoothY = target; running = false; }
       paint(smoothY);
       if (running) requestAnimationFrame(frame); else lastT = 0;
@@ -255,9 +361,10 @@
     return { render: render, measure: measure };
   }());
 
+  var walkEl = document.getElementById('walk');
+
   function onScroll() {
     var y = window.scrollY || window.pageYOffset;
-    if (header) header.classList.toggle('is-stuck', y > 24);
 
     if (hero && !reduced) {
       // Swing the hero frame open over the first stretch of scroll.
@@ -265,15 +372,21 @@
       hero.style.setProperty('--unfold', (u * u * (3 - 2 * u)).toFixed(3));
     }
 
+    // Every walkthrough step owns the whole screen. Both persistent bars get
+    // out of the way for the duration and come back either side of it.
+    var inWalk = false;
+    if (walkEl && !reduced) {
+      var wr = walkEl.getBoundingClientRect();
+      inWalk = wr.top < window.innerHeight * 0.5 && wr.bottom > window.innerHeight * 0.5;
+    }
+
+    if (header) {
+      header.classList.toggle('is-stuck', y > 24);
+      header.classList.toggle('is-away', inWalk);
+    }
+
     if (sticky && hero) {
-      // Surface the bar once the hero's own CTA has scrolled away — but not
-      // over the walkthrough, where it sits on top of every step.
-      var walkEl = document.getElementById('walk');
-      var inWalk = false;
-      if (walkEl) {
-        var wr = walkEl.getBoundingClientRect();
-        inWalk = wr.top < window.innerHeight * 0.5 && wr.bottom > window.innerHeight * 0.5;
-      }
+      // Surface the bar once the hero's own CTA has scrolled away.
       var show = y > hero.offsetHeight * 0.72 && !inWalk;
       sticky.classList.toggle('is-visible', show);
       sticky.setAttribute('aria-hidden', show ? 'false' : 'true');
