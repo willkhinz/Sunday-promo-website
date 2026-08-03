@@ -171,6 +171,15 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   border-bottom-color: var(--line);
 }
 
+/* Each walkthrough step is a full screen of its own, and the bar sat over
+   the top edge of every frame in it. Off for the duration, like the CTA. */
+.site-header.is-away {
+  transform: translateY(-102%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .34s var(--ease), opacity .24s var(--ease);
+}
+
 .header-inner {
   display: flex;
   align-items: center;
@@ -673,9 +682,16 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   display: grid;
   place-items: center;
   place-content: center;
-  /* Reserve the verb above and the caption + download bar below, so the
-     frame centres in what is actually free rather than the whole stage. */
-  padding: 68px var(--gut) 116px;
+  /* Nothing is reserved at the top any more — the header steps aside for
+     the walkthrough, so the frames get that band back. The bottom still
+     holds a clear band for the caption, wide enough that the text sits
+     well below the frame rather than tucked under its edge.
+     Kept as variables because absolutely-positioned decoration inside a
+     stage resolves against the padding box, which is not where anything
+     laid out in the grid actually sits. */
+  --pad-t: 22px;
+  --pad-b: 158px;
+  padding: var(--pad-t) var(--gut) var(--pad-b);
 }
 
 /* Sits with its description at the foot of the step. Pinning it in the
@@ -704,7 +720,7 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 #walk .caption {
   position: absolute;
   left: var(--gut); right: var(--gut);
-  bottom: max(30px, calc(env(safe-area-inset-bottom) + 22px));
+  bottom: max(34px, calc(env(safe-area-inset-bottom) + 26px));
   text-align: center; z-index: 6;
 }
 #walk .caption p { color: var(--fg-2); font-size: .92rem; line-height: 1.5; }
@@ -750,7 +766,7 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 /* 3 · Hear — a ripple spreads from a point */
 #walk #hear .ripple {
   position: absolute; inset: 0; display: grid; place-items: center; place-content: center; background: #000;
-  padding: 68px var(--gut) 116px;
+  padding: var(--pad-t) var(--gut) var(--pad-b);   /* reproduces the stage's own box */
   clip-path: circle(var(--r,0%) at 50% 50%); will-change: clip-path;
 }
 #walk #hear .rings { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
@@ -789,19 +805,36 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   opacity: var(--haloO,0); pointer-events: none;
 }
 
-/* 7 · Locate — drops in and settles on a pin */
-#walk #locate .drop { transform: translateY(var(--dy,-60vh)); will-change: transform; }
-#walk #locate .pin {
-  position: absolute; left: 50%; top: 50%; translate: -50% -50%;
-  width: 16px; height: 16px; border-radius: 50%; background: #fff;
-  transform: scale(var(--ps,0)); opacity: var(--po,0);
+/* 7 · Locate — a viewfinder closing on a fix.
+   The old version dropped a dot and pulsed a ring behind the copy, which
+   put a grey disc straight through the middle of the words. The brackets
+   sit outside the text instead, and converging keeps this step distinct
+   from the ripple, the aperture, the lens and the bloom. */
+#walk #locate .reticle {
+  position: absolute; left: 50%; translate: -50% -50%;
+  /* Centre on the content box, where the copy is, not on the padding box. */
+  top: calc(var(--pad-t) + (100% - var(--pad-t) - var(--pad-b)) / 2);
+  /* The box closes by its own width and height rather than by pushing the
+     corners out on transforms. Sliding them in from off-screen looked like
+     nothing at all for most of the runway — a frame around a line of this
+     copy is nearly screen-wide on a phone, so the corners spend the whole
+     travel outside the viewport and only appear at the end. Starting at
+     the edges and closing inward keeps them on screen throughout, and the
+     borders repaint crisp at every size. */
+  width: var(--rw, 346px); height: var(--rh, 208px);
+  pointer-events: none; opacity: var(--ro, 0);
+  will-change: width, height, opacity;
 }
-#walk #locate .pulse {
-  position: absolute; left: 50%; top: 50%; translate: -50% -50%;
-  width: 30vmin; height: 30vmin; border-radius: 50%;
-  border: 1px solid rgba(255,255,255,.45);
-  transform: scale(var(--pulse,0)); opacity: var(--pulseO,0);
+#walk #locate .reticle i {
+  position: absolute; width: 24px; height: 24px;
+  border: 1.5px solid rgba(255,255,255,.85);
 }
+#walk #locate .reticle i:nth-child(1) { top: 0;    left: 0;  border-right: 0; border-bottom: 0; }
+#walk #locate .reticle i:nth-child(2) { top: 0;    right: 0; border-left: 0;  border-bottom: 0; }
+#walk #locate .reticle i:nth-child(3) { bottom: 0; right: 0; border-left: 0;  border-top: 0; }
+#walk #locate .reticle i:nth-child(4) { bottom: 0; left: 0;  border-right: 0; border-top: 0; }
+
+#walk #locate .fix { opacity: var(--fxo, 0); }
 
 /* 8 · Calculate — counts up and lands on the answer */
 #walk #calc .readout {
@@ -848,7 +881,7 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   #walk .stage { position: static; height: auto; padding-block: 60px; gap: 24px; }
   #walk .stage > * { transform: none !important; clip-path: none !important; opacity: 1 !important;
                      -webkit-mask-image: none !important; mask-image: none !important; }
-  #walk .blackout, #walk .ring, #walk .pin, #walk .pulse,
+  #walk .blackout, #walk .ring, #walk .reticle,
   #walk .halo, #walk .seamline, #walk .rule, #walk .bloom { display: none !important; }
   #walk .verb, #walk .caption { position: static; }
   #walk #watch .strip { flex-direction: column; }

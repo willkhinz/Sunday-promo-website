@@ -59,6 +59,20 @@
         chatL1     = $('#chatL1', root),
         chatL2     = $('#chatL2', root);
     var zoom = null;   // fitted type + the letter to fly into, filled by measure()
+    var loc  = null;   // the reticle's open and closed boxes, filled by measure()
+
+    /* Where Locate's viewfinder starts and where it lands. The open box is
+       the free area of the stage inset a little, so the corners begin at
+       the screen edges; the closed box is a frame around the copy. */
+    function measureLocate() {
+      var ret = $('#locate .reticle', root);
+      if (!ret) return;
+      var st = ret.parentNode, cs = getComputedStyle(st);
+      var free = st.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      var w1 = Math.min(st.clientWidth * .90, 360);
+      loc = { w0: st.clientWidth - 26, h0: Math.max(free - 22, 240),
+              w1: w1, h1: Math.min(w1 * .60, free - 60) };
+    }
 
     /* Lay the three lines out in user units for a W x H viewBox. Called
        repeatedly while fitting, so it must be a pure function of fs. */
@@ -75,6 +89,7 @@
     }
 
     function measure() {
+      measureLocate();
       if (!chatSvg || !chatL2) return;
       var r = chatSvg.getBoundingClientRect();
       var W = Math.round(r.width), H = Math.round(r.height);
@@ -156,31 +171,31 @@
           vw.toFixed(3) + ' ' + vh.toFixed(3));
       },
       see: function (q, s) {                        // an aperture opens
-        set($('.lens',s),'--slit',(50 - ease(span(q,.03,.46))*50).toFixed(2)+'%');
+        set($('.lens',s),'--slit',(50 - ease(span(q,0,.46))*50).toFixed(2)+'%');
       },
       hear: function (q, s) {                       // a ripple spreads outward
-        set($('.ripple',s),'--r',(ease(span(q,.03,.44))*82).toFixed(1)+'%');
+        set($('.ripple',s),'--r',(ease(span(q,0,.44))*82).toFixed(1)+'%');
         [].forEach.call(s.querySelectorAll('.ring'), function (r, i) {
-          var t = span(q, .03 + i*.06, .42 + i*.06);
+          var t = span(q, i*.06, .42 + i*.06);
           set(r,'--rs',(t*3.4).toFixed(2));
           set(r,'--ro',(Math.sin(t*Math.PI)*.5).toFixed(2));
         });
       },
       watch: function (q, s) {                      // frames flick past, one settles
         var strip = $('.strip',s), w = strip.firstElementChild.offsetWidth + 14;
-        var t = ease(span(q,.03,.48));
+        var t = ease(span(q,0,.48));
         set(strip,'--sx',((1-t)*w*1.9).toFixed(1)+'px');
         set(strip,'--so',(.1 + t*.28).toFixed(2));
       },
       read: function (q, s) {                       // lines reveal down the page
-        var t = ease(span(q,.04,.50));
+        var t = ease(span(q,0,.50));
         set($('.phone',s),'--unread',((1-t)*100).toFixed(1)+'%');
         var rule = $('.rule',s);
         set(rule,'--ruleY',(t*100).toFixed(1)+'%');
         set(rule,'--ruleO',(Math.sin(clamp(t,0,1)*Math.PI)*.9).toFixed(2));
       },
       search: function (q, s) {                     // a lens sweeps, then opens out
-        var t = span(q,.03,.56);
+        var t = span(q,0,.56);
         // Hold the lens small while it travels, or it covers the viewport
         // before the sweep is legible; only widen once it has crossed.
         var sweep = ease(clamp(t/.72,0,1)), open = ease(clamp((t-.72)/.28,0,1));
@@ -191,31 +206,32 @@
         set(halo,'--lens',r.toFixed(0)+'px'); set(halo,'--lx',lx.toFixed(1)+'%');
         set(halo,'--haloO',((1-open)*.75).toFixed(2));
       },
-      locate: function (q, s) {                     // drops in and settles on a pin
-        var t = outc(span(q,.03,.44));
-        set($('.drop',s),'--dy',((1-t)*-55).toFixed(1)+'vh');
-        var k = span(q,.34,.50), qq = span(q,.36,.64);
-        var pin = $('.pin',s), pulse = $('.pulse',s);
-        set(pin,'--ps',k.toFixed(2)); set(pin,'--po',(k*.9).toFixed(2));
-        set(pulse,'--pulse',(qq*2.6).toFixed(2));
-        set(pulse,'--pulseO',(Math.sin(qq*Math.PI)*.6).toFixed(2));
+      locate: function (q, s) {                     // a viewfinder closing on a fix
+        if (!loc) return;
+        var ret = $('.reticle',s), t = outc(span(q,0,.48));
+        set(ret,'--rw',(loc.w0 + (loc.w1 - loc.w0) * t).toFixed(1)+'px');
+        set(ret,'--rh',(loc.h0 + (loc.h1 - loc.h0) * t).toFixed(1)+'px');
+        // The brackets are the mechanism, not the message: up quickly,
+        // then out once they have closed, leaving the line they found.
+        set(ret,'--ro',(Math.min(t/.14,1) * (1 - span(q,.56,.72))).toFixed(3));
+        set($('.fix',s),'--fxo', ease(span(q,.30,.58)).toFixed(3));
       },
       calc: function (q, s) {                       // counts up to the answer
         // Deliberately a count rather than a digit scramble: scroll can stop
         // anywhere, and a frozen scramble reads as a wrong answer where a
         // frozen count still reads as working.
-        $('#calcNum', s).textContent = String(Math.round(ease(span(q,.04,.52)) * 4410));
+        $('#calcNum', s).textContent = String(Math.round(ease(span(q,0,.52)) * 4410));
       },
       remember: function (q, s) {                   // earlier screens recede behind
-        set($('.deck',s),'--spread', ease(span(q,.04,.46)).toFixed(3));
+        set($('.deck',s),'--spread', ease(span(q,0,.46)).toFixed(3));
       },
       think: function (q, s) {                      // unfolds from a vertical seam
-        var t = ease(span(q,.04,.50));
+        var t = ease(span(q,0,.50));
         set($('.fold',s),'--seam',((1-t)*50).toFixed(2)+'%');
         set($('.seamline',s),'--seamO',(Math.sin(clamp(t,0,1)*Math.PI)*.9).toFixed(2));
       },
       know: function (q, s) {                       // blooms from a point of light
-        var b = span(q,.03,.40), f = span(q,.26,.56);
+        var b = span(q,0,.40), f = span(q,.26,.56);
         set($('.bloom',s),'--bs',(1 + b*b*30).toFixed(2));
         set($('.bloom',s),'--bo',Math.sin(b*Math.PI).toFixed(2));
         set($('.final',s),'--fo', f.toFixed(2));
@@ -270,7 +286,7 @@
         if (s.move) s.move(q, s.el);
         // Black is now only the last sliver, where one step has finished
         // and the next has already taken over the screen.
-        if (s.fade) s.fade.style.opacity = span(q,.94,1).toFixed(3);
+        if (s.fade) s.fade.style.opacity = span(q,.96,1).toFixed(3);
         if (s.cap)  s.cap.style.opacity  = (span(q,.08,.22) * (1 - span(q,s.co[0],s.co[1]))).toFixed(3);
       }
     }
@@ -304,9 +320,10 @@
     return { render: render, measure: measure };
   }());
 
+  var walkEl = document.getElementById('walk');
+
   function onScroll() {
     var y = window.scrollY || window.pageYOffset;
-    if (header) header.classList.toggle('is-stuck', y > 24);
 
     if (hero && !reduced) {
       // Swing the hero frame open over the first stretch of scroll.
@@ -314,15 +331,21 @@
       hero.style.setProperty('--unfold', (u * u * (3 - 2 * u)).toFixed(3));
     }
 
+    // Every walkthrough step owns the whole screen. Both persistent bars get
+    // out of the way for the duration and come back either side of it.
+    var inWalk = false;
+    if (walkEl && !reduced) {
+      var wr = walkEl.getBoundingClientRect();
+      inWalk = wr.top < window.innerHeight * 0.5 && wr.bottom > window.innerHeight * 0.5;
+    }
+
+    if (header) {
+      header.classList.toggle('is-stuck', y > 24);
+      header.classList.toggle('is-away', inWalk);
+    }
+
     if (sticky && hero) {
-      // Surface the bar once the hero's own CTA has scrolled away — but not
-      // over the walkthrough, where it sits on top of every step.
-      var walkEl = document.getElementById('walk');
-      var inWalk = false;
-      if (walkEl) {
-        var wr = walkEl.getBoundingClientRect();
-        inWalk = wr.top < window.innerHeight * 0.5 && wr.bottom > window.innerHeight * 0.5;
-      }
+      // Surface the bar once the hero's own CTA has scrolled away.
       var show = y > hero.offsetHeight * 0.72 && !inWalk;
       sticky.classList.toggle('is-visible', show);
       sticky.setAttribute('aria-hidden', show ? 'false' : 'true');
