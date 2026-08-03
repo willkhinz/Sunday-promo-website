@@ -231,11 +231,22 @@
         set($('.fold',s),'--seam',((1-t)*50).toFixed(2)+'%');
         set($('.seamline',s),'--seamO',(Math.sin(clamp(t,0,1)*Math.PI)*.9).toFixed(2));
       },
-      know: function (q, s) {                       // blooms from a point of light
-        var b = span(q,0,.40), f = span(q,.26,.56);
-        set($('.bloom',s),'--bs',(1 + b*b*30).toFixed(2));
-        set($('.bloom',s),'--bo',Math.sin(b*Math.PI).toFixed(2));
-        set($('.final',s),'--fo', f.toFixed(2));
+      know: function (q, s) {                       // the closing line folds shut
+        // Longer than the other ten. Nothing follows it, and the last
+        // thing the walkthrough does should not be its quickest.
+        var t = ease(span(q,0,.62));
+        // A couple of degrees past flat and back, so the halves settle like
+        // a sheet pressed down rather than easing to a stop in mid-air.
+        // Resolves exactly when the fold does, or the line keeps a slight
+        // skew for the rest of the runway.
+        var a = (1 - t) * 74 - Math.sin(span(q,.34,.62) * Math.PI) * 3.0;
+        var el = $('.final',s);
+        set(el,'--fold', a.toFixed(2)+'deg');
+        set(el,'--lit', (1 - .5 * (1 - Math.cos(a * Math.PI / 180))).toFixed(3));
+        // Held back while it is near edge-on: at that angle the line is a
+        // sliver, and fading it up there reads as a slab sliding rather
+        // than a sheet turning over.
+        set(el,'--fo', span(t,.10,.52).toFixed(3));
       }
     };
 

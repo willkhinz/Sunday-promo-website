@@ -820,7 +820,7 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
    The old version dropped a dot and pulsed a ring behind the copy, which
    put a grey disc straight through the middle of the words. The brackets
    sit outside the text instead, and converging keeps this step distinct
-   from the ripple, the aperture, the lens and the bloom. */
+   from the ripple, the aperture and the lens. */
 #walk #locate .reticle {
   position: absolute; left: 50%; translate: -50% -50%;
   /* Centre on the content box, where the copy is, not on the padding box. */
@@ -868,14 +868,24 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   background: rgba(255,255,255,.75); opacity: var(--seamO,0);
 }
 
-/* 11 · Know — blooms from a single point */
-#walk #know .bloom {
-  position: absolute; left: 50%; top: 50%; translate: -50% -50%;
-  width: 8px; height: 8px; border-radius: 50%; background: #fff;
-  transform: scale(var(--bs,1)); opacity: var(--bo,0);
-  box-shadow: 0 0 60px 20px rgba(255,255,255,.35);
+/* 11 · Know — the closing line folds shut and lies flat */
+/* Deep enough to foreshorten clearly, shallow enough that the keystone
+   does not shear glyphs near the left and right edges. Creasing the block
+   across its middle was tried first and does not work: the fold lands
+   inside a line of type, so words come apart mid-letter and it reads as a
+   rendering fault rather than a crease. */
+#walk #know .foldin { position: relative; perspective: 760px; }
+
+#walk #know .final {
+  margin: 0;
+  transform-origin: 50% 100%;          /* hinge along the lower edge */
+  transform: rotateX(var(--fold, 74deg));
+  opacity: var(--fo, 0);
+  /* Comes up out of shadow as it flattens, the way a sheet takes the
+     light when it turns to face you. */
+  filter: brightness(var(--lit, 1));
+  will-change: transform, opacity;
 }
-#walk #know .final { opacity: var(--fo,0); }
 
 @media (prefers-reduced-motion: reduce) {
   /* No scroll driver runs, so the frame must not stay folded shut. */
@@ -893,7 +903,12 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   #walk .stage > * { transform: none !important; clip-path: none !important; opacity: 1 !important;
                      -webkit-mask-image: none !important; mask-image: none !important; }
   #walk .blackout, #walk .ring, #walk .reticle,
-  #walk .halo, #walk .seamline, #walk .rule, #walk .bloom { display: none !important; }
+  #walk .halo, #walk .seamline, #walk .rule { display: none !important; }
+  /* A grandchild of the stage, so the blanket reset above does not reach
+     it: lay the line flat and light it. */
+  #walk #know .final {
+    transform: none !important; opacity: 1 !important; filter: none !important;
+  }
   #walk .verb, #walk .caption { position: static; }
   #walk #watch .strip { flex-direction: column; }
   #walk #remember .deck { height: auto; aspect-ratio: auto; }
