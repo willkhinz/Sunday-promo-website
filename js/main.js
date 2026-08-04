@@ -165,6 +165,15 @@
        two thirds by halfway. */
     function reveal(t) { return .45 * t + .55 * (1 - Math.pow(1 - t, 2.2)); }
 
+    /* For a move that is itself the thing worth watching, rather than a
+       curtain being pulled off one. Holds a constant rate for most of its
+       length and only eases over the last third, so the motion is spread
+       evenly instead of being mostly over by the time you notice it. */
+    function land(t) {
+      var k = .32, v = 1 / (1 - k / 2), u = t - (1 - k);
+      return t <= 1 - k ? v * t : v * ((1 - k) + u - u * u / (2 * k));
+    }
+
     /* How much of a step's runway the reveal occupies. It was under half,
        which left the back two thirds of every step a frozen picture — the
        reason the transitions read as over before they started. Chat is
@@ -251,19 +260,22 @@
         set($('.seamline',s),'--seamO',(Math.sin(clamp(t,0,1)*Math.PI)*.9).toFixed(2));
       },
       know: function (q, s) {                       // the closing line folds shut
-        var t = reveal(span(q,0,W));
-        // A couple of degrees past flat and back, so the halves settle like
-        // a sheet pressed down rather than easing to a stop in mid-air.
-        // Resolves exactly when the fold does, or the line keeps a slight
-        // skew for the rest of the runway.
-        var a = (1 - t) * 74 - Math.sin(span(q,.52,.86) * Math.PI) * 3.0;
         var el = $('.final',s);
+        // Up out of black almost at once, so the step never opens on
+        // nothing — but that is all the reveal curve is for here.
+        set(el,'--fo', reveal(span(q,0,.07)).toFixed(3));
+        // The fold is the thing worth watching, so it runs at a near
+        // constant rate instead. On the reveal curve it spent most of its
+        // travel in the first fraction of the step, while the line was
+        // still fading up — by the time you could read it, it had already
+        // arrived. Over 60% of a runway that is itself the longest of the
+        // eleven, this takes about two and a half seconds.
+        var t = land(span(q,0,.60));
+        // A couple of degrees past flat and back, so it settles like a
+        // sheet pressed down rather than stopping dead in mid-air.
+        var a = (1 - t) * 68 - Math.sin(span(q,.50,.72) * Math.PI) * 3.0;
         set(el,'--fold', a.toFixed(2)+'deg');
         set(el,'--lit', (1 - .5 * (1 - Math.cos(a * Math.PI / 180))).toFixed(3));
-        // Held back while it is near edge-on: at that angle the line is a
-        // sliver, and fading it up there reads as a slab sliding rather
-        // than a sheet turning over.
-        set(el,'--fo', span(t,.02,.30).toFixed(3));
       }
     };
 
