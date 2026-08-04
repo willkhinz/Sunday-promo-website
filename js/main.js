@@ -7,6 +7,71 @@
 
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* ── clips ─────────────────────────────────────────────────
+     Rendered clips that stand in for the static frames. Each entry keys a
+     `data-clip` slot in the markup; a slot with no entry keeps the still
+     it already contains, so the page is complete with none of these
+     present and adding one is a single line here.
+
+     Deliberately not `src` attributes in the HTML: the deploy verifies
+     that every referenced local path exists, so naming a file before it
+     is rendered would fail the build rather than degrade quietly.
+
+     Give each clip both an .mp4 (H.264) and a .webm (VP9). Safari needs
+     the first; the second is usually the smaller file for everyone else.
+     `poster` is optional — the slot's own <img> is used when it is
+     absent. */
+  var CLIPS = {
+    // hero:   { mp4: 'assets/video/hero-answer.mp4', webm: 'assets/video/hero-answer.webm' },
+    // answer: { mp4: 'assets/video/offline.mp4',     webm: 'assets/video/offline.webm' },
+    // tune:   { mp4: 'assets/video/tune.mp4',        webm: 'assets/video/tune.webm' }
+  };
+
+  (function mountClips() {
+    var slots = document.querySelectorAll('[data-clip]');
+    if (!slots.length) return;
+
+    [].forEach.call(slots, function (slot) {
+      var spec = CLIPS[slot.getAttribute('data-clip')];
+      if (!spec || reduced) return;         // keep the still
+
+      var still = slot.querySelector('img');
+      var v = document.createElement('video');
+      v.muted = true; v.loop = true; v.playsInline = true;
+      v.setAttribute('muted', '');          // Safari wants the attribute too
+      v.setAttribute('playsinline', '');
+      // Nothing downloads until the slot is close to the viewport; a clip
+      // in the footer should not compete with the hero for bandwidth.
+      v.preload = 'none';
+      if (spec.poster) v.poster = spec.poster;
+      else if (still) v.poster = still.currentSrc || still.src;
+      v.setAttribute('aria-hidden', 'true');
+
+      (spec.webm ? [['webm', 'video/webm'], ['mp4', 'video/mp4']]
+                 : [['mp4', 'video/mp4']]).forEach(function (pair) {
+        if (!spec[pair[0]]) return;
+        var s = document.createElement('source');
+        s.src = spec[pair[0]]; s.type = pair[1];
+        v.appendChild(s);
+      });
+
+      slot.appendChild(v);
+      slot.classList.add('has-clip');       // hides the still, shows the video
+
+      if (!('IntersectionObserver' in window)) { v.preload = 'auto'; v.play().catch(function(){}); return; }
+      new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) {
+            if (v.preload !== 'auto') { v.preload = 'auto'; v.load(); }
+            v.play().catch(function () {});   // a blocked autoplay leaves the poster
+          } else {
+            v.pause();
+          }
+        });
+      }, { rootMargin: '200px 0px', threshold: 0.15 }).observe(slot);
+    });
+  }());
+
   /* ── scroll reveal ─────────────────────────────────────── */
 
   var revealables = document.querySelectorAll('.reveal');
@@ -62,15 +127,38 @@
 
     /* Where Locate's viewfinder starts and where it lands. The open box is
        the free area of the stage inset a little, so the corners begin at
-       the screen edges; the closed box is a frame around the copy. */
+       the screen edges; the closed box is a frame around the copy.
+
+       The closed box is measured off the copy itself. It used to be a
+       fixed 360px cap, which is about right for a phone and wrong for
+       anything wider: on a desktop the line runs to some 800px, so the
+       brackets closed to well inside the words and the step ended as four
+       little squares sitting on top of the text. */
     function measureLocate() {
       var ret = $('#locate .reticle', root);
       if (!ret) return;
       var st = ret.parentNode, cs = getComputedStyle(st);
       var free = st.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
-      var w1 = Math.min(st.clientWidth * .90, 360);
+
+      // A Range over the contents, not the element's own box: the box is a
+      // full-width block carrying the section's inline padding, so framing
+      // that would put the brackets outside the screen on a phone and give
+      // a misleading width everywhere. The Range gives the type's real
+      // extent. (--fxo may be holding the line at zero opacity right now;
+      // layout, and therefore this measurement, is unaffected.)
+      var fix = $('.fix', st), tr = null;
+      if (fix) {
+        var rng = document.createRange();
+        rng.selectNodeContents(fix);
+        var rr = rng.getBoundingClientRect();
+        if (rr.width > 1) tr = rr;
+      }
+      var pad = 30;
+      var w1 = tr ? Math.min(tr.width + pad * 2, st.clientWidth - 22) : Math.min(st.clientWidth * .9, 360);
+      var h1 = tr ? Math.min(tr.height + pad * 2, free - 40) : Math.min(w1 * .6, free - 60);
+
       loc = { w0: st.clientWidth - 26, h0: Math.max(free - 22, 240),
-              w1: w1, h1: Math.min(w1 * .60, free - 60) };
+              w1: w1, h1: Math.max(h1, 120) };
     }
 
     /* Lay the three lines out in user units for a W x H viewBox. Called
@@ -411,11 +499,7 @@
   function onScroll() {
     var y = window.scrollY || window.pageYOffset;
 
-    if (hero && !reduced) {
-      // Swing the hero frame open over the first stretch of scroll.
-      var u = Math.min(y / Math.max(hero.offsetHeight * 0.35, 1), 1);
-      hero.style.setProperty('--unfold', (u * u * (3 - 2 * u)).toFixed(3));
-    }
+    // The hero frame unfolds on load, in CSS — nothing to drive here.
 
     // Every walkthrough step owns the whole screen. Both persistent bars get
     // out of the way for the duration and come back either side of it.
