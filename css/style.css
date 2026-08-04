@@ -854,12 +854,41 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 }
 #walk #calc .unit { font-size: .3em; color: var(--fg-3); letter-spacing: .04em; margin-left: .18em; }
 
-/* 9 · Remember — earlier screens recede behind */
-#walk #remember .deck { position: relative; width: min(80vw,308px); aspect-ratio: 640/1391; }
-#walk #remember .deck .phone { position: absolute; inset: 0; width: 100%; }
-#walk #remember .deck .phone:nth-child(1) { transform: translateY(calc(var(--spread,0) * -46px)) scale(calc(1 - var(--spread,0) * .18)); opacity: calc(1 - var(--spread,0) * .55); }
-#walk #remember .deck .phone:nth-child(2) { transform: translateY(calc(var(--spread,0) * -23px)) scale(calc(1 - var(--spread,0) * .09)); opacity: calc(1 - var(--spread,0) * .3); }
-#walk #remember .deck .phone:nth-child(3) { transform: none; }
+/* 9 · Remember — earlier screens recede behind the current one.
+
+   The front card is the last child, so it paints over the other two. That
+   means the two behind it have to end up somewhere it isn't, or the step
+   shows a single still picture — which is what it did: they scaled about
+   their own centres, so they shrank inward and finished wholly inside the
+   front card's rectangle, invisible the entire way.
+
+   Scaling from the top edge instead makes the geometry answerable. With
+   transform-origin at 50% 0%, a scale leaves the top where it is and a
+   translateY moves it by exactly that much, so each card's peek above the
+   one in front is just the difference between their offsets. The deck
+   shifts down as it spreads to keep the fan on screen. */
+#walk #remember .deck {
+  position: relative; width: min(80vw,308px); aspect-ratio: 640/1391;
+  transform: translateY(calc(var(--spread,0) * 6.6%));
+}
+#walk #remember .deck .phone {
+  position: absolute; inset: 0; width: 100%;
+  transform-origin: 50% 0%;
+  will-change: transform, opacity;
+}
+/* Percentages of the card's own height, so the fan holds its proportions
+   at any viewport rather than being tuned for one phone width. */
+#walk #remember .deck .phone:nth-child(1) {   /* furthest back */
+  transform: translateY(calc(var(--spread,0) * -7.8%)) scale(calc(1 - var(--spread,0) * .32));
+  opacity: calc(1 - var(--spread,0) * .66);
+}
+#walk #remember .deck .phone:nth-child(2) {
+  transform: translateY(calc(var(--spread,0) * -0.9%)) scale(calc(1 - var(--spread,0) * .22));
+  opacity: calc(1 - var(--spread,0) * .42);
+}
+#walk #remember .deck .phone:nth-child(3) {   /* the current screen */
+  transform: translateY(calc(var(--spread,0) * 4.2%)) scale(calc(1 - var(--spread,0) * .12));
+}
 
 /* 10 · Think — unfolds outward from a vertical seam */
 #walk #think .fold { clip-path: inset(0 var(--seam,50%) 0 var(--seam,50%)); will-change: clip-path; }
