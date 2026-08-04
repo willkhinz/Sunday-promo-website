@@ -669,6 +669,13 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   /* One stage hands straight over to the next instead of sliding past it. */
   margin-bottom: -100vh;
 }
+
+/* The finale gets a longer runway than the other ten. It has to carry both
+   a fold slow enough to watch and, after it lands, long enough on screen
+   to actually read the line — and at 250vh the fold left about a fifth of
+   a second of hold, which is no time to read anything. Every step's
+   offsets are measured individually, so one being taller costs nothing. */
+#walk #know.step { height: 340vh; }
 #walk .step:last-of-type { margin-bottom: 0; }
 
 /* Tall runway, sticky viewport: progress through the runway drives every
