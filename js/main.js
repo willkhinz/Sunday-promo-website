@@ -128,7 +128,12 @@
       if (!(inkW > 0) || !(inkH > 0)) return;
 
       var idx = Math.max(chatL2.textContent.indexOf('o'), 0);
-      var ext = chatL2.getExtentOfChar(idx);
+      var ext;
+      try {
+        ext = chatL2.getExtentOfChar(idx);
+      } catch (e) {
+        ext = { x: W / 2 - 10, y: base, width: 20, height: 20 };
+      }
 
       // The frame has cleared the letter once it fits inside the ink on both
       // axes; on a tall phone the vertical crossing is much the later of the
@@ -466,53 +471,4 @@
   walk.render();
   window.addEventListener('load', function () { walk.measure(); walk.render(); });
 
-  /* ── carousel dots ─────────────────────────────────────── */
-
-  var carousel = document.getElementById('carousel');
-  var dotsWrap = document.getElementById('dots');
-  var slides = carousel ? Array.prototype.slice.call(carousel.querySelectorAll('.slide')) : [];
-
-  if (carousel && dotsWrap && slides.length > 1) {
-    slides.forEach(function (slide, i) {
-      var dot = document.createElement('button');
-      dot.type = 'button';
-      dot.className = 'dot' + (i === 0 ? ' is-active' : '');
-      dot.setAttribute('aria-label', 'Go to screenshot ' + (i + 1) + ' of ' + slides.length);
-      dot.addEventListener('click', function () {
-        carousel.scrollTo({
-          left: slide.offsetLeft - (carousel.clientWidth - slide.clientWidth) / 2,
-          behavior: reduced ? 'auto' : 'smooth'
-        });
-      });
-      dotsWrap.appendChild(dot);
-    });
-
-    dotsWrap.removeAttribute('aria-hidden');
-    var dots = Array.prototype.slice.call(dotsWrap.children);
-
-    if ('IntersectionObserver' in window) {
-      // Track whichever slide is nearest the centre of the viewport.
-      var slideObserver = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-          if (!entry.isIntersecting) return;
-          var idx = slides.indexOf(entry.target);
-          if (idx < 0) return;
-          dots.forEach(function (d, i) { d.classList.toggle('is-active', i === idx); });
-        });
-      }, { root: carousel, threshold: 0.6 });
-
-      slides.forEach(function (s) { slideObserver.observe(s); });
-    }
-
-    // Arrow keys when the carousel itself has focus.
-    carousel.addEventListener('keydown', function (e) {
-      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-      e.preventDefault();
-      var step = slides[0].getBoundingClientRect().width + 18;
-      carousel.scrollBy({
-        left: e.key === 'ArrowRight' ? step : -step,
-        behavior: reduced ? 'auto' : 'smooth'
-      });
-    });
-  }
 }());

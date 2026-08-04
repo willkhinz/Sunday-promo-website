@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+
 /* ============================================================
    Sunday — promo site
    Mobile-first. Pure black, matching the app.
@@ -13,8 +15,11 @@
   --fg-2:        rgba(255, 255, 255, .58);
   --fg-3:        rgba(255, 255, 255, .40);
 
-  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+  /* iOS system font stack (SF Pro) with Inter fallback for non-Apple devices */
+  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, "Inter", sans-serif;
+  
+  /* iOS system rounded font stack (SF Pro Rounded) with Plus Jakarta Sans fallback */
+  --sans-rounded: -apple-system-rounded, "SF Pro Rounded", "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
   --wrap: 1140px;
   --gut: 22px;
@@ -51,7 +56,8 @@ a { color: inherit; text-decoration: none; }
 
 h1, h2, h3 {
   margin: 0;
-  font-weight: 700;
+  font-family: var(--sans-rounded);
+  font-weight: 800;
   letter-spacing: -.032em;
   line-height: 1.06;
 }
@@ -130,16 +136,20 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   background: #fff;
   color: #000;
   border-radius: 999px;
-  font-weight: 600;
+  font-family: var(--sans-rounded);
+  font-weight: 700;
   letter-spacing: -.01em;
   padding: 14px 24px;
-  transition: transform .18s var(--ease), opacity .18s var(--ease);
+  transition: transform .18s var(--ease), opacity .18s var(--ease), box-shadow .18s var(--ease);
   will-change: transform;
 }
 .btn:active { transform: scale(.972); }
 
 @media (hover: hover) {
-  .btn:hover { opacity: .88; }
+  .btn:hover {
+    opacity: .95;
+    box-shadow: 0 0 24px rgba(255, 255, 255, 0.16);
+  }
 }
 
 .btn-sm { padding: 9px 17px; font-size: .89rem; }
@@ -209,6 +219,20 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   position: relative;
   isolation: isolate;
   padding-top: clamp(36px, 9vw, 76px);
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  top: 15%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70vw;
+  height: 70vw;
+  background: radial-gradient(circle, rgba(255, 179, 71, 0.07) 0%, rgba(139, 92, 246, 0.03) 60%, transparent 100%);
+  filter: blur(80px);
+  z-index: -2;
+  pointer-events: none;
 }
 
 /* ── hero video ────────────────────────────────────────────── */
@@ -342,8 +366,6 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 }
 .proof span { color: var(--fg); font-weight: 600; }
 
-/* ── features ──────────────────────────────────────────────── */
-
 .features {
   display: grid;
   gap: 1px;
@@ -354,8 +376,17 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 }
 
 .feature {
-  background: var(--bg);
+  background: rgba(11, 11, 12, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   padding: 26px 22px 28px;
+  transition: transform .25s var(--ease), border-color .25s var(--ease), box-shadow .25s var(--ease);
+}
+.feature:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
 }
 
 .feature svg {
@@ -378,62 +409,6 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   line-height: 1.55;
   color: var(--fg-2);
 }
-
-/* ── carousel ──────────────────────────────────────────────── */
-
-.carousel {
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  padding-block: 6px 4px;
-}
-.carousel::-webkit-scrollbar { display: none; }
-
-.track {
-  display: flex;
-  gap: 18px;
-  padding-inline: var(--gut);
-  width: max-content;
-}
-
-.slide {
-  scroll-snap-align: center;
-  width: 250px;
-  flex: none;
-}
-
-.slide .phone { max-width: none; }
-
-.slide-cap { margin-top: 20px; padding-inline: 2px; }
-.slide-cap h3 { font-size: 1.02rem; letter-spacing: -.022em; }
-.slide-cap p {
-  margin-top: 6px;
-  font-size: .9rem;
-  line-height: 1.5;
-  color: var(--fg-2);
-}
-
-.dots {
-  display: flex;
-  gap: 7px;
-  justify-content: center;
-  margin-top: 34px;
-}
-
-.dot {
-  width: 6px;
-  height: 6px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: var(--line-strong);
-  transition: background .25s var(--ease), width .25s var(--ease);
-  cursor: pointer;
-}
-.dot.is-active { background: #fff; width: 20px; border-radius: 3px; }
-
 /* ── privacy ───────────────────────────────────────────────── */
 
 .claims { display: grid; gap: 1px; background: var(--line); border-block: 1px solid var(--line); }
@@ -455,6 +430,24 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 }
 
 /* ── tech ──────────────────────────────────────────────────── */
+
+.tech {
+  position: relative;
+  isolation: isolate;
+}
+
+.tech::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  right: -10vw;
+  width: 50vw;
+  height: 50vw;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.04) 0%, rgba(59, 130, 246, 0.01) 60%, transparent 100%);
+  filter: blur(80px);
+  z-index: -2;
+  pointer-events: none;
+}
 
 .specs {
   margin-top: 40px;
@@ -478,7 +471,8 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 
 .specs dd {
   margin: 0;
-  font-weight: 600;
+  font-family: var(--sans-rounded);
+  font-weight: 700;
   font-size: .97rem;
   letter-spacing: -.015em;
   font-variant-numeric: tabular-nums;
@@ -715,7 +709,8 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 /* Sits with its description at the foot of the step. Pinning it in the
    corner crowded the frame once the frames filled the screen. */
 #walk .verb {
-  font-size: .68rem; font-weight: 600; letter-spacing: .18em;
+  font-family: var(--sans-rounded);
+  font-size: .68rem; font-weight: 700; letter-spacing: .18em;
   text-transform: uppercase; color: var(--fg-3);
   margin-bottom: 7px;
 }
@@ -767,12 +762,14 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 }
 #walk #chat .zt-line {
   fill: #fff;
+  font-family: var(--sans-rounded);
   font-size: 34px;              /* placeholder; measure() fits it to the stage */
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -.04em;
 }
 #walk #chat .zt-kicker {
   fill: var(--fg-3);
+  font-family: var(--sans-rounded);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: .14em;
@@ -806,8 +803,9 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 #walk #read .sheet { position: relative; }
 #walk #read .sheet .phone { clip-path: inset(0 0 var(--unread,100%) 0); will-change: clip-path; }
 #walk #read .rule {
-  position: absolute; left: -8%; right: -8%; height: 1px;
-  background: rgba(255,255,255,.7);
+  position: absolute; left: -8%; right: -8%; height: 2px;
+  background: #fff;
+  box-shadow: 0 0 8px 1px rgba(255, 255, 255, 0.7);
   top: var(--ruleY,0%); opacity: var(--ruleO,0);
 }
 
@@ -845,7 +843,8 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 }
 #walk #locate .reticle i {
   position: absolute; width: 24px; height: 24px;
-  border: 1.5px solid rgba(255,255,255,.85);
+  border: 1.5px solid rgba(255,255,255,.95);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
 }
 #walk #locate .reticle i:nth-child(1) { top: 0;    left: 0;  border-right: 0; border-bottom: 0; }
 #walk #locate .reticle i:nth-child(2) { top: 0;    right: 0; border-left: 0;  border-bottom: 0; }
@@ -856,8 +855,10 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 
 /* 8 · Calculate — counts up and lands on the answer */
 #walk #calc .readout {
+  font-family: var(--sans-rounded);
   font-variant-numeric: tabular-nums; font-size: clamp(3rem, 17vw, 6rem);
-  font-weight: 700; letter-spacing: -.05em;
+  font-weight: 800; letter-spacing: -.05em;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
 }
 #walk #calc .unit { font-size: .3em; color: var(--fg-3); letter-spacing: .04em; margin-left: .18em; }
 
@@ -901,7 +902,8 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 #walk #think .fold { clip-path: inset(0 var(--seam,50%) 0 var(--seam,50%)); will-change: clip-path; }
 #walk #think .seamline {
   position: absolute; top: 12%; bottom: 12%; left: 50%; width: 1px;
-  background: rgba(255,255,255,.75); opacity: var(--seamO,0);
+  background: #fff; opacity: var(--seamO,0);
+  box-shadow: 0 0 10px 1px rgba(255, 255, 255, 0.8);
 }
 
 /* 11 · Know — the closing line folds shut and lies flat */
