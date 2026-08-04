@@ -1,0 +1,9 @@
+# Sunday — https://willkhinz.github.io/Sunday-promo-website/
+User-agent: *
+Allow: /
+
+# Source screenshots are the originals the site's optimised assets were
+# built from. They are not content and should not be indexed.
+Disallow: /assets/screenshots/
+
+Sitemap: https://willkhinz.github.io/Sunday-promo-website/sitemap.xml

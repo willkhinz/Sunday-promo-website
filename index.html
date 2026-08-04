@@ -7,11 +7,23 @@
 <meta name="description" content="Sunday runs Google's Gemma 4 entirely on your iPhone. See photos, hear voice notes, watch videos, read PDFs. No account, no servers, no data collection.">
 <meta name="theme-color" content="#000000">
 
+<!-- Scrapers do not resolve relative og:image paths, and a portrait
+     screenshot declared as summary_large_image gets cropped to nothing.
+     Absolute URL, purpose-built 1200x630 card. -->
+<link rel="canonical" href="https://willkhinz.github.io/Sunday-promo-website/">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://willkhinz.github.io/Sunday-promo-website/">
+<meta property="og:site_name" content="Sunday">
 <meta property="og:title" content="Sunday — A private AI that never leaves your phone">
 <meta property="og:description" content="On-device AI for iPhone. Google's Gemma 4, running locally via MLX. No account, no servers, no data collection.">
-<meta property="og:image" content="assets/img/chat.webp">
+<meta property="og:image" content="https://willkhinz.github.io/Sunday-promo-website/assets/img/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Sunday — a private AI that never leaves your phone. No account, no servers, no data collection.">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Sunday — A private AI that never leaves your phone">
+<meta name="twitter:description" content="On-device AI for iPhone. Google's Gemma 4, running locally via MLX. No account, no servers, no data collection.">
+<meta name="twitter:image" content="https://willkhinz.github.io/Sunday-promo-website/assets/img/og.png">
 
 <link rel="icon" href="assets/img/icon.png" type="image/png">
 <link rel="apple-touch-icon" href="assets/img/icon.png">
@@ -51,7 +63,7 @@
   <div class="wrap hero-grid">
     <div class="hero-copy">
       <p class="eyebrow reveal">On-device AI for iPhone</p>
-      <h1 class="reveal">A private AI that never leaves your&nbsp;phone.</h1>
+      <h1 class="reveal">A private AI that never leaves your phone.</h1>
       <p class="lede reveal">Sunday runs Google's Gemma 4 entirely on your iPhone. Ask it anything, show it a photo, play it a voice note — the model thinks on your device, not on someone's server.</p>
 
       <div class="hero-cta reveal">
@@ -64,7 +76,7 @@
     </div>
 
     <div class="hero-shot reveal">
-      <div class="phone phone-hero">
+      <div class="clip phone phone-hero" data-clip="hero">
         <img src="assets/img/chat-hero.webp" width="640" height="1059" alt="Sunday answering a question about why a sourdough loaf failed to rise." fetchpriority="high" decoding="async">
       </div>
       <div class="phone-glow" aria-hidden="true"></div>
@@ -225,6 +237,31 @@
 </section>
 </section>
 
+<!-- ───────────────────────── live demo ─────────────────────────
+     The eleven steps above are still frames with motion applied to them.
+     Nothing on the page has shown the app actually running, which for a
+     model that answers locally is the whole point: the speed and the
+     absence of a round trip are the product. This band is where the
+     rendered clip goes. Until one exists it falls back to a still, so the
+     section reads correctly either way. -->
+<section class="section demo" id="demo">
+  <div class="wrap demo-grid">
+    <div class="demo-copy">
+      <p class="eyebrow reveal">Live</p>
+      <h2 class="reveal">No upload. No spinner.<br>It just starts writing.</h2>
+      <p class="section-sub reveal">Nothing leaves the phone, so nothing waits on a round trip. Sunday reads the question and begins answering — in a tunnel, on a plane, or with the radios switched off entirely.</p>
+      <p class="demo-note reveal">Airplane mode. No Wi-Fi, no cellular, no account.</p>
+    </div>
+
+    <div class="demo-shot reveal">
+      <div class="clip phone" data-clip="answer">
+        <img src="assets/img/chat.webp" width="640" height="1391" loading="lazy" decoding="async"
+             alt="Sunday answering a question with the network switched off.">
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ───────────────────────── privacy ───────────────────────── -->
 <section class="section privacy" id="privacy">
   <div class="wrap">
@@ -277,7 +314,9 @@
     </div>
 
     <div class="tech-shot reveal">
-      <div class="phone"><img src="assets/img/settings-model.webp" width="640" height="1391" loading="lazy" decoding="async" alt="Sunday's settings screen showing model information: Gemma 4 E2B INT4, MLX Swift engine, 4-bit quantization, 128K token context."></div>
+      <div class="clip phone" data-clip="tune">
+        <img src="assets/img/settings-model.webp" width="640" height="1391" loading="lazy" decoding="async" alt="Sunday's settings screen showing model information: Gemma 4 E2B INT4, MLX Swift engine, 4-bit quantization, 128K token context.">
+      </div>
     </div>
   </div>
 </section>

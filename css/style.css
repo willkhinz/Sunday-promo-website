@@ -1,8 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
-
 /* ============================================================
    Sunday — promo site
    Mobile-first. Pure black, matching the app.
+
+   No webfonts, deliberately. A page selling an assistant that never
+   talks to a server should not open a connection to Google before it
+   paints — and a font @import is the slowest way to load one anyway:
+   the browser has to fetch this file, parse it, discover the import,
+   fetch that CSS, then fetch the faces. The system stacks below cost
+   nothing and, on the iPhone this app ships for, are the real thing
+   rather than an imitation of it.
    ============================================================ */
 
 :root {
@@ -15,11 +21,20 @@
   --fg-2:        rgba(255, 255, 255, .58);
   --fg-3:        rgba(255, 255, 255, .40);
 
-  /* iOS system font stack (SF Pro) with Inter fallback for non-Apple devices */
-  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, "Inter", sans-serif;
-  
-  /* iOS system rounded font stack (SF Pro Rounded) with Plus Jakarta Sans fallback */
-  --sans-rounded: -apple-system-rounded, "SF Pro Rounded", "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  /* SF Pro on Apple platforms, each platform's own UI face elsewhere. */
+  --sans: -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+
+  /* SF Pro Rounded, which the app uses for its display type.
+     `ui-rounded` is the standard generic family and the only way to reach
+     it from the web — "SF Pro Rounded" is not resolvable by name, and
+     `-apple-system-rounded` is not a keyword in any engine, so a stack
+     built on those two silently falls through to whatever comes next.
+     `ui-rounded` first, then the ordinary UI face, which is the closest
+     thing available where no rounded system font exists. */
+  --sans-rounded: ui-rounded, -apple-system, BlinkMacSystemFont, system-ui,
+                  "Segoe UI Variable Display", "Segoe UI", Roboto,
+                  "Helvetica Neue", Arial, sans-serif;
 
   --wrap: 1140px;
   --gut: 22px;
@@ -36,6 +51,19 @@
 html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
+  /* The walkthrough slides frames in from off-stage, so something is
+     always sticking out sideways. `overflow-x: hidden` on the body alone
+     does not contain it: with html visible the body's overflow propagates
+     to the viewport, which left window.innerWidth reporting 432 on a
+     393px screen. Anything positioned against the viewport inherited that
+     error — the fixed download bar resolved left:0/right:0 to 432 and ran
+     its button 17px off the right edge of the phone.
+
+     `clip` on the root contains it without creating a scroll container,
+     so position: sticky keeps working. `hidden` below is the fallback for
+     anything too old to know `clip`. */
+  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {
@@ -60,6 +88,10 @@ h1, h2, h3 {
   font-weight: 800;
   letter-spacing: -.032em;
   line-height: 1.06;
+  /* The rounded face is wider than the one these breaks were set against,
+     which left single words stranded on their own line. Balance evens the
+     lines out per viewport instead of trusting a hard-coded break. */
+  text-wrap: balance;
 }
 
 p { margin: 0; }
@@ -101,6 +133,14 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   text-transform: uppercase;
   color: var(--fg-3);
   margin-bottom: 18px;
+}
+
+/* The hero's eyebrow is the only one that sits over footage rather than
+   flat black, and 40% white over a moving mid-grey plate is not legible.
+   Everywhere else the section grounds are black and --fg-3 is correct. */
+.hero .eyebrow {
+  color: rgba(255, 255, 255, .74);
+  text-shadow: 0 1px 14px rgba(0, 0, 0, .95);
 }
 
 .section-head { max-width: 44ch; margin-bottom: 44px; }
@@ -310,12 +350,22 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 }
 
 /* Hinged at the top edge so it swings open like a folded panel rather
-   than just tilting. --unfold is driven by scroll depth in main.js. */
+   than just tilting.
+
+   This runs once on load rather than being scrubbed by scroll. Tied to
+   scroll depth, its resting state at the top of the page was folded —
+   28% opacity, leaning back 62 degrees — so the first thing anyone saw
+   was a dim skewed rectangle that reads as a rendering fault. As an
+   entrance it lands open and stays open, and `both` holds the folded
+   state through the delay so there is no flash of the end state first.
+   A keyframe animation also means it still plays with JS disabled. */
+@keyframes hero-unfold {
+  from { transform: rotateX(-62deg) translateY(26px); opacity: .28; }
+  to   { transform: none;                             opacity: 1; }
+}
 .hero-shot .phone {
   transform-origin: 50% 0%;
-  transform: rotateX(calc((1 - var(--unfold, 1)) * -62deg))
-             translateY(calc((1 - var(--unfold, 1)) * 26px));
-  opacity: calc(.28 + var(--unfold, 1) * .72);
+  animation: hero-unfold .95s var(--ease) .2s both;
   will-change: transform, opacity;
 }
 
@@ -427,6 +477,41 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   font-size: .97rem;
   line-height: 1.6;
   max-width: 58ch;
+}
+
+/* ── clips ─────────────────────────────────────────────────────
+   A slot holds a still and, once a rendered clip is registered for it in
+   main.js, a video laid over that still. The still stays in the DOM as
+   the poster and as the reduced-motion and no-JS state. */
+
+.clip { position: relative; overflow: hidden; }
+
+.clip video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  opacity: 0;
+  transition: opacity .4s var(--ease);
+}
+/* Only once a clip is actually mounted — otherwise the still is the
+   whole content and must stay visible. */
+.clip.has-clip video { opacity: 1; }
+
+/* ── live demo ─────────────────────────────────────────────── */
+
+.demo-shot { margin-top: 44px; display: flex; justify-content: center; }
+.demo-shot .phone { max-width: 300px; }
+
+.demo-note {
+  margin-top: 24px;
+  color: var(--fg-3);
+  font-size: .88rem;
+  letter-spacing: .01em;
+  padding-left: 14px;
+  border-left: 2px solid var(--line-strong);
 }
 
 /* ── tech ──────────────────────────────────────────────────── */
@@ -598,13 +683,18 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   }
   .claim { padding: 34px 30px; }
 
-  .tech-grid {
+  .tech-grid,
+  .demo-grid {
     display: grid;
     grid-template-columns: 1.1fr .9fr;
     align-items: center;
     gap: 64px;
   }
-  .tech-shot { margin-top: 0; }
+  .tech-shot, .demo-shot { margin-top: 0; }
+  /* Frame on the left, copy on the right — the opposite hand to Tech, so
+     the two full-width bands do not read as the same slide twice. */
+  .demo-grid { grid-template-columns: .9fr 1.1fr; }
+  .demo-shot { order: -1; }
 
   .section-head { margin-bottom: 56px; }
 
@@ -613,7 +703,12 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 }
 
 @media (min-width: 1100px) {
-  .hero h1 { font-size: 4.5rem; }
+  /* The headline shares the row with the frame, so it has about 530px to
+     work in. The rounded face is wider than the one this was set against:
+     at 4.5rem, and still at 3.9, "A private AI that" overran by a few
+     pixels and pushed a fourth line carrying one word. 3.6 fits it to
+     three at every wrap mode, with room to spare. */
+  .hero h1 { font-size: 3.6rem; }
 }
 
 /* ============================================================
@@ -927,7 +1022,7 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 
 @media (prefers-reduced-motion: reduce) {
   /* No scroll driver runs, so the frame must not stay folded shut. */
-  .hero-shot .phone { transform: none !important; opacity: 1 !important; }
+  .hero-shot .phone { animation: none !important; transform: none !important; opacity: 1 !important; }
   /* No scroll driver, so the viewBox keeps its authored value and the SVG
      just lays the question out and sits still. A definite width — not a
      percentage — or the auto grid track sizes to the viewBox's own 400px
