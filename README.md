@@ -26,10 +26,12 @@ firebase deploy --only hosting
 ```
 index.html            markup + copy
 css/style.css         mobile-first styles, single black theme
-js/main.js            scroll reveals, sticky CTA, carousel dots
+js/main.js            scroll reveals, sticky CTA, carousel dots, clip manifest
 assets/img/           web-optimised WebP used by the page (~455 KB total)
 assets/screenshots/   original 1206×2622 captures, kept as source of truth
+assets/video/         rendered clips + the hero's ambient background loop
 assets/favicon.svg
+video/                Remotion source for the assets/video/ clips — see video/README.md
 ```
 
 ## Sections
