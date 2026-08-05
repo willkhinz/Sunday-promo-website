@@ -1,0 +1,277 @@
+{
+  "hero": {
+    "width": 640,
+    "height": 1059,
+    "plate": "plates/hero-plate.png",
+    "fillColor": "rgb(20,20,20)",
+    "user": {
+      "src": "plates/hero-user.png",
+      "x": 166,
+      "y": 261,
+      "w": 458,
+      "h": 67
+    },
+    "usertime": {
+      "src": "plates/hero-usertime.png",
+      "x": 552,
+      "y": 332,
+      "w": 64,
+      "h": 19
+    },
+    "asst": {
+      "src": "plates/hero-asst.png",
+      "x": 74,
+      "y": 366,
+      "w": 461,
+      "h": 409
+    },
+    "asstmeta": {
+      "src": "plates/hero-asstmeta.png",
+      "x": 11,
+      "y": 745,
+      "w": 202,
+      "h": 62
+    },
+    "bubble": {
+      "left": 3,
+      "top": 3,
+      "right": 458,
+      "bottom": 406
+    },
+    "lines": [
+      {
+        "top": 24,
+        "bottom": 46,
+        "left": 26,
+        "right": 359
+      },
+      {
+        "top": 53,
+        "bottom": 75,
+        "left": 26,
+        "right": 404
+      },
+      {
+        "top": 81,
+        "bottom": 103,
+        "left": 26,
+        "right": 404
+      },
+      {
+        "top": 110,
+        "bottom": 132,
+        "left": 26,
+        "right": 370
+      },
+      {
+        "top": 138,
+        "bottom": 160,
+        "left": 26,
+        "right": 420
+      },
+      {
+        "top": 167,
+        "bottom": 189,
+        "left": 26,
+        "right": 432
+      },
+      {
+        "top": 195,
+        "bottom": 217,
+        "left": 26,
+        "right": 398
+      },
+      {
+        "top": 224,
+        "bottom": 246,
+        "left": 26,
+        "right": 395
+      },
+      {
+        "top": 251,
+        "bottom": 274,
+        "left": 25,
+        "right": 360
+      },
+      {
+        "top": 281,
+        "bottom": 303,
+        "left": 25,
+        "right": 409
+      },
+      {
+        "top": 310,
+        "bottom": 331,
+        "left": 25,
+        "right": 366
+      },
+      {
+        "top": 338,
+        "bottom": 360,
+        "left": 25,
+        "right": 322
+      },
+      {
+        "top": 366,
+        "bottom": 388,
+        "left": 26,
+        "right": 169
+      }
+    ]
+  },
+  "answer": {
+    "width": 640,
+    "height": 1391,
+    "plate": "plates/answer-plate.png",
+    "fillColor": "rgb(20,20,20)",
+    "user": {
+      "src": "plates/answer-user.png",
+      "x": 168,
+      "y": 593,
+      "w": 456,
+      "h": 68
+    },
+    "usertime": {
+      "src": "plates/answer-usertime.png",
+      "x": 552,
+      "y": 664,
+      "w": 64,
+      "h": 19
+    },
+    "asst": {
+      "src": "plates/answer-asst.png",
+      "x": 74,
+      "y": 699,
+      "w": 460,
+      "h": 408
+    },
+    "asstmeta": {
+      "src": "plates/answer-asstmeta.png",
+      "x": 11,
+      "y": 1077,
+      "w": 202,
+      "h": 62
+    },
+    "bubble": {
+      "left": 3,
+      "top": 3,
+      "right": 457,
+      "bottom": 405
+    },
+    "lines": [
+      {
+        "top": 23,
+        "bottom": 46,
+        "left": 26,
+        "right": 360
+      },
+      {
+        "top": 52,
+        "bottom": 74,
+        "left": 26,
+        "right": 404
+      },
+      {
+        "top": 81,
+        "bottom": 103,
+        "left": 26,
+        "right": 404
+      },
+      {
+        "top": 109,
+        "bottom": 132,
+        "left": 26,
+        "right": 370
+      },
+      {
+        "top": 137,
+        "bottom": 160,
+        "left": 26,
+        "right": 420
+      },
+      {
+        "top": 166,
+        "bottom": 188,
+        "left": 26,
+        "right": 432
+      },
+      {
+        "top": 195,
+        "bottom": 217,
+        "left": 26,
+        "right": 398
+      },
+      {
+        "top": 222,
+        "bottom": 245,
+        "left": 26,
+        "right": 395
+      },
+      {
+        "top": 251,
+        "bottom": 274,
+        "left": 25,
+        "right": 360
+      },
+      {
+        "top": 280,
+        "bottom": 302,
+        "left": 25,
+        "right": 410
+      },
+      {
+        "top": 309,
+        "bottom": 331,
+        "left": 25,
+        "right": 366
+      },
+      {
+        "top": 337,
+        "bottom": 359,
+        "left": 25,
+        "right": 322
+      },
+      {
+        "top": 366,
+        "bottom": 388,
+        "left": 26,
+        "right": 169
+      }
+    ]
+  },
+  "tune": {
+    "width": 640,
+    "height": 1391,
+    "plate": "plates/tune-plate.png",
+    "groups": [
+      {
+        "src": "plates/tune-g0.png",
+        "x": 20,
+        "y": 222,
+        "w": 602,
+        "h": 460
+      },
+      {
+        "src": "plates/tune-g1.png",
+        "x": 20,
+        "y": 718,
+        "w": 602,
+        "h": 212
+      },
+      {
+        "src": "plates/tune-g2.png",
+        "x": 20,
+        "y": 962,
+        "w": 602,
+        "h": 284
+      },
+      {
+        "src": "plates/tune-g3.png",
+        "x": 20,
+        "y": 1262,
+        "w": 602,
+        "h": 129
+      }
+    ]
+  }
+}
