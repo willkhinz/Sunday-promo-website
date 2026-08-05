@@ -1,0 +1,19 @@
+{
+  "name": "sunday-promo-clips",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Remotion source for the app-running clips embedded in the promo site.",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts",
+    "still": "remotion still src/index.ts",
+    "render:all": "npm run render -- hero out/hero.mp4 --codec=h264 --crf=20 && npm run render -- answer out/answer.mp4 --codec=h264 --crf=20 && npm run render -- tune out/tune.mp4 --codec=h264 --crf=20"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@remotion/cli": "^4.0.506",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.506"
+  }
+}
