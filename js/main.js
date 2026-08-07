@@ -275,25 +275,44 @@
     var W = .86;
 
     var moves = {
-      chat: function (q, s) {                         // pop up chat bubbles then drive through letterform
+      chat: function (q, s) {                         // interactive phone mockup + chat bubbles then drive through letterform
         if (!zoom) return;
 
-        // Chat bubbles animation: user bubble pops up (0.00-0.12), AI bubble pops up (0.08-0.22), then fade during zoom (0.24-0.38)
-        var fade = 1 - span(q, .24, .38);
-        var uOp = reveal(span(q, .00, .12)) * fade;
-        var aOp = reveal(span(q, .08, .22)) * fade;
-        var uBub = $('#userBubble', s), aBub = $('#aiBubble', s);
+        // 1. Phone mockup card entry (0.00 -> 0.15) & fade-out during zoom (0.45 -> 0.60)
+        var phoneFade = 1 - span(q, .45, .60);
+        var phoneOp = reveal(span(q, .00, .14)) * phoneFade;
+        var phoneScale = .92 + phoneOp * .08;
+        var chatPhone = $('#chatPhone', s);
+        if (chatPhone) {
+          set(chatPhone, '--phone-op', phoneOp.toFixed(3));
+          set(chatPhone, '--phone-scale', phoneScale.toFixed(3));
+        }
+
+        // 2. User bubble pop up (0.10 -> 0.24)
+        var uOp = reveal(span(q, .10, .24)) * phoneFade;
+        var uBub = $('#userBubble', s);
         if (uBub) set(uBub, '--user-op', uOp.toFixed(3));
+
+        // 3. AI bubble pop up & text streaming (0.24 -> 0.45)
+        var aOp = reveal(span(q, .24, .40)) * phoneFade;
+        var aBub = $('#aiBubble', s);
         if (aBub) set(aBub, '--ai-op', aOp.toFixed(3));
 
-        var r = span(q, .24, 1), t = zin(r);
-        // Geometric, not linear: equal scroll buys equal magnification, so
-        // the approach holds one apparent speed instead of crawling for
-        // most of the runway and then lunging the last few percent.
+        // Progressive word typing effect on AI text
+        var aiTextEl = $('#aiText', s);
+        if (aiTextEl) {
+          var fullText = "Sourdough fails to rise due to inactive starter yeast, improper room temperature, under-proofing, or excess hydration inhibiting gluten structure.";
+          var textProgress = span(q, .26, .44);
+          var wordCount = Math.floor(textProgress * fullText.split(' ').length);
+          var currentText = fullText.split(' ').slice(0, Math.max(1, wordCount)).join(' ');
+          if (textProgress > 0 && textProgress < 1) currentText += '...';
+          aiTextEl.textContent = textProgress > 0 ? currentText : fullText;
+        }
+
+        // 4. Zoom into letter "o" of sourdough didn't rise (0.45 -> 1.0)
+        var r = span(q, .45, 1), t = zin(r);
         var vw = zoom.W * Math.pow(zoom.vwEnd / zoom.W, t);
         var vh = vw * (zoom.H / zoom.W);
-        // Lock onto the letter over the first half; after that it is
-        // dead ahead and the move is a straight push in.
         var c = ease(clamp(r / .5, 0, 1));
         var cx = zoom.W / 2 + (zoom.cx - zoom.W / 2) * c;
         var cy = zoom.H / 2 + (zoom.cy - zoom.H / 2) * c;

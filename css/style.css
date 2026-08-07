@@ -854,6 +854,7 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   position: absolute; inset: 0;
   width: 100%; height: 100%;
   display: block;
+  transform: translateY(-50px);
 }
 #walk #chat .zt-line {
   fill: #fff;
@@ -870,28 +871,73 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   letter-spacing: .14em;
 }
 
-/* Mock chat bubbles in #chat */
-#walk #chat .mock-chat-container {
+/* Interactive Chat Phone Mockup in #chat */
+#walk #chat .chat-stage-phone {
   position: absolute;
-  bottom: clamp(60px, 12vh, 120px);
+  bottom: 45px;
   left: 50%;
-  transform: translateX(-50%);
-  width: min(90vw, 440px);
+  transform: translateX(-50%) scale(var(--phone-scale, 0.95));
+  width: min(88vw, 380px);
+  background: rgba(11, 11, 13, 0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 22px;
+  padding: 14px;
+  box-shadow: 
+    0 0 0 1px rgba(0, 0, 0, 0.8),
+    0 24px 60px -12px rgba(0, 0, 0, 0.95),
+    0 0 40px rgba(255, 255, 255, 0.04);
+  opacity: var(--phone-op, 0);
+  z-index: 5;
+  pointer-events: none;
+  transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
+  will-change: opacity, transform;
+}
+
+#walk #chat .chat-phone-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 12px;
+}
+
+#walk #chat .chat-model-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--fg-2);
+  letter-spacing: 0.02em;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+#walk #chat .pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #30d158;
+  box-shadow: 0 0 8px #30d158;
+}
+
+#walk #chat .chat-phone-body {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  z-index: 10;
-  pointer-events: none;
+  gap: 10px;
 }
 
 #walk #chat .chat-bubble {
-  padding: 13px 18px;
-  border-radius: 20px;
+  padding: 11px 15px;
+  border-radius: 18px;
   font-family: var(--sans);
-  font-size: clamp(0.85rem, 2.5vw, 0.95rem);
+  font-size: 0.86rem;
   line-height: 1.42;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
   will-change: opacity, transform;
 }
 
@@ -901,40 +947,54 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   color: #000000;
   font-weight: 500;
   border-bottom-right-radius: 4px;
-  max-width: 84%;
+  max-width: 86%;
   opacity: var(--user-op, 0);
-  transform: translateY(calc((1 - var(--user-op, 0)) * 20px)) scale(calc(0.94 + var(--user-op, 0) * 0.06));
+  transform: translateY(calc((1 - var(--user-op, 0)) * 14px));
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
 }
 
 #walk #chat .ai-bubble {
   align-self: flex-start;
   background: #1c1c1e;
   color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-bottom-left-radius: 4px;
-  max-width: 92%;
+  max-width: 96%;
   opacity: var(--ai-op, 0);
-  transform: translateY(calc((1 - var(--ai-op, 0)) * 20px)) scale(calc(0.94 + var(--ai-op, 0) * 0.06));
+  transform: translateY(calc((1 - var(--ai-op, 0)) * 14px));
 }
 
-#walk #chat .ai-meta {
+#walk #chat .ai-header {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   margin-bottom: 5px;
 }
 
 #walk #chat .ai-avatar {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
 }
 
-#walk #chat .ai-time {
-  font-size: 0.7rem;
+#walk #chat .ai-name {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+#walk #chat .ai-badge {
+  font-size: 0.62rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.5);
-  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+#walk #chat .ai-text-content p {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.92);
 }
 
 /* 2 · See — an aperture opens */
