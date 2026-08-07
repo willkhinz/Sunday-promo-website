@@ -870,6 +870,73 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   letter-spacing: .14em;
 }
 
+/* Mock chat bubbles in #chat */
+#walk #chat .mock-chat-container {
+  position: absolute;
+  bottom: clamp(60px, 12vh, 120px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(90vw, 440px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+#walk #chat .chat-bubble {
+  padding: 13px 18px;
+  border-radius: 20px;
+  font-family: var(--sans);
+  font-size: clamp(0.85rem, 2.5vw, 0.95rem);
+  line-height: 1.42;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
+  will-change: opacity, transform;
+}
+
+#walk #chat .user-bubble {
+  align-self: flex-end;
+  background: #ffffff;
+  color: #000000;
+  font-weight: 500;
+  border-bottom-right-radius: 4px;
+  max-width: 84%;
+  opacity: var(--user-op, 0);
+  transform: translateY(calc((1 - var(--user-op, 0)) * 20px)) scale(calc(0.94 + var(--user-op, 0) * 0.06));
+}
+
+#walk #chat .ai-bubble {
+  align-self: flex-start;
+  background: #1c1c1e;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-bottom-left-radius: 4px;
+  max-width: 92%;
+  opacity: var(--ai-op, 0);
+  transform: translateY(calc((1 - var(--ai-op, 0)) * 20px)) scale(calc(0.94 + var(--ai-op, 0) * 0.06));
+}
+
+#walk #chat .ai-meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 5px;
+}
+
+#walk #chat .ai-avatar {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+
+#walk #chat .ai-time {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.02em;
+}
+
 /* 2 · See — an aperture opens */
 #walk #see .lens { clip-path: inset(var(--slit,50%) 0 var(--slit,50%) 0); will-change: clip-path; }
 

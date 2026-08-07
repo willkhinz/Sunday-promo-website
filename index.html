@@ -117,6 +117,21 @@
       <text class="zt-line" id="chatL1" x="200" y="120" text-anchor="middle">explain why my</text>
       <text class="zt-line" id="chatL2" x="200" y="162" text-anchor="middle">sourdough didn't rise</text>
     </svg>
+
+    <!-- Mock conversation bubbles that pop up as the user scrolls -->
+    <div class="mock-chat-container" id="chatBubbles" aria-hidden="true">
+      <div class="chat-bubble user-bubble" id="userBubble">
+        <p>explain why my sourdough didn't rise</p>
+      </div>
+      <div class="chat-bubble ai-bubble" id="aiBubble">
+        <div class="ai-meta">
+          <img src="assets/img/mark.png" alt="Sunday" class="ai-avatar">
+          <span class="ai-time">Sunday AI</span>
+        </div>
+        <p>Sourdough fails to rise due to inactive starter yeast, improper room temperature, under-proofing, or excess hydration inhibiting gluten structure.</p>
+      </div>
+    </div>
+
     <div class="caption" data-cap><p class="verb">Chat</p></div>
   </div>
 </section>

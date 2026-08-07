@@ -275,8 +275,17 @@
     var W = .86;
 
     var moves = {
-      chat: function (q) {                          // drive through a letterform
+      chat: function (q, s) {                         // pop up chat bubbles then drive through letterform
         if (!zoom) return;
+
+        // Chat bubbles animation: user bubble pops up (0.00-0.12), AI bubble pops up (0.08-0.22), then fade during zoom (0.24-0.38)
+        var fade = 1 - span(q, .24, .38);
+        var uOp = reveal(span(q, .00, .12)) * fade;
+        var aOp = reveal(span(q, .08, .22)) * fade;
+        var uBub = $('#userBubble', s), aBub = $('#aiBubble', s);
+        if (uBub) set(uBub, '--user-op', uOp.toFixed(3));
+        if (aBub) set(aBub, '--ai-op', aOp.toFixed(3));
+
         var r = span(q, .24, 1), t = zin(r);
         // Geometric, not linear: equal scroll buys equal magnification, so
         // the approach holds one apparent speed instead of crawling for
