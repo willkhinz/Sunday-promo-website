@@ -385,9 +385,8 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 
 .phone img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
 
-/* The hero capture has its dead vertical band collapsed, so it carries a
-   tighter aspect than the uniform carousel frames. */
-.phone-hero { aspect-ratio: 640 / 1059; }
+/* Hero phone container maintains full iPhone aspect ratio 640 / 1391 */
+.phone-hero { aspect-ratio: 640 / 1391; }
 
 .phone-glow {
   position: absolute;
