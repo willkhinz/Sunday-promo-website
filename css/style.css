@@ -854,7 +854,6 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   position: absolute; inset: 0;
   width: 100%; height: 100%;
   display: block;
-  transform: translateY(-50px);
 }
 #walk #chat .zt-line {
   fill: #fff;
@@ -871,130 +870,69 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   letter-spacing: .14em;
 }
 
-/* Interactive Chat Phone Mockup in #chat */
-#walk #chat .chat-stage-phone {
+/* Floating chat bubbles — positioned at the bottom of the stage, above the SVG */
+#walk #chat .chat-bubbles {
   position: absolute;
-  bottom: 45px;
+  bottom: 95px;
   left: 50%;
-  transform: translateX(-50%) scale(var(--phone-scale, 0.95));
-  width: min(88vw, 380px);
-  background: rgba(11, 11, 13, 0.94);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 22px;
-  padding: 14px;
-  box-shadow: 
-    0 0 0 1px rgba(0, 0, 0, 0.8),
-    0 24px 60px -12px rgba(0, 0, 0, 0.95),
-    0 0 40px rgba(255, 255, 255, 0.04);
-  opacity: var(--phone-op, 0);
-  z-index: 5;
-  pointer-events: none;
-  transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
-  will-change: opacity, transform;
-}
-
-#walk #chat .chat-phone-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-bottom: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  margin-bottom: 12px;
-}
-
-#walk #chat .chat-model-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--fg-2);
-  letter-spacing: 0.02em;
-  background: rgba(255, 255, 255, 0.06);
-  padding: 4px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-#walk #chat .pulse-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #30d158;
-  box-shadow: 0 0 8px #30d158;
-}
-
-#walk #chat .chat-phone-body {
+  transform: translateX(-50%);
+  width: min(86vw, 380px);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  z-index: 8;
+  pointer-events: none;
 }
 
-#walk #chat .chat-bubble {
-  padding: 11px 15px;
-  border-radius: 18px;
+#walk #chat .cbub {
   font-family: var(--sans);
-  font-size: 0.86rem;
-  line-height: 1.42;
-  will-change: opacity, transform;
+  font-size: .88rem;
+  line-height: 1.4;
+  border-radius: 18px;
+  padding: 10px 16px;
+  will-change: transform, opacity;
 }
 
-#walk #chat .user-bubble {
+#walk #chat .cbub-user {
   align-self: flex-end;
-  background: #ffffff;
-  color: #000000;
+  background: #fff;
+  color: #000;
   font-weight: 500;
   border-bottom-right-radius: 4px;
-  max-width: 86%;
-  opacity: var(--user-op, 0);
-  transform: translateY(calc((1 - var(--user-op, 0)) * 14px));
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  max-width: 82%;
+  box-shadow: 0 4px 20px rgba(0,0,0,.45);
+  opacity: var(--u-op, 0);
+  transform: translateY(calc((1 - var(--u-op, 0)) * 16px));
 }
 
-#walk #chat .ai-bubble {
+#walk #chat .cbub-ai {
   align-self: flex-start;
   background: #1c1c1e;
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.12);
   border-bottom-left-radius: 4px;
-  max-width: 96%;
-  opacity: var(--ai-op, 0);
-  transform: translateY(calc((1 - var(--ai-op, 0)) * 14px));
+  max-width: 94%;
+  box-shadow: 0 4px 20px rgba(0,0,0,.5);
+  opacity: var(--a-op, 0);
+  transform: translateY(calc((1 - var(--a-op, 0)) * 16px));
 }
 
-#walk #chat .ai-header {
+#walk #chat .cbub-ai-label {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 5px;
-}
-
-#walk #chat .ai-avatar {
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-}
-
-#walk #chat .ai-name {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-#walk #chat .ai-badge {
-  font-size: 0.62rem;
+  gap: 4px;
+  font-size: .68rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.45);
-  background: rgba(255, 255, 255, 0.1);
-  padding: 1px 5px;
-  border-radius: 4px;
+  color: rgba(255,255,255,.5);
+  margin-bottom: 3px;
 }
+#walk #chat .cbub-ai-label img { border-radius: 50%; flex: none; }
+#walk #chat .cbub-ai-label em { font-style: normal; color: rgba(255,255,255,.35); }
 
-#walk #chat .ai-text-content p {
-  font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.92);
+#walk #chat .cbub-ai-body {
+  display: block;
+  font-size: .84rem;
+  color: rgba(255,255,255,.9);
 }
 
 /* 2 · See — an aperture opens */

@@ -275,42 +275,33 @@
     var W = .86;
 
     var moves = {
-      chat: function (q, s) {                         // interactive phone mockup + chat bubbles then drive through letterform
+      chat: function (q, s) {                         // floating bubbles then zoom into letter
         if (!zoom) return;
 
-        // 1. Phone mockup card entry (0.00 -> 0.15) & fade-out during zoom (0.45 -> 0.60)
-        var phoneFade = 1 - span(q, .45, .60);
-        var phoneOp = reveal(span(q, .00, .14)) * phoneFade;
-        var phoneScale = .92 + phoneOp * .08;
-        var chatPhone = $('#chatPhone', s);
-        if (chatPhone) {
-          set(chatPhone, '--phone-op', phoneOp.toFixed(3));
-          set(chatPhone, '--phone-scale', phoneScale.toFixed(3));
+        // Bubbles fade out as the zoom kicks in
+        var fade = 1 - span(q, .38, .50);
+
+        // User bubble pops up (0.04 → 0.18)
+        var uOp = reveal(span(q, .04, .18)) * fade;
+        var uEl = $('#userBubble', s);
+        if (uEl) set(uEl, '--u-op', uOp.toFixed(3));
+
+        // AI bubble pops up (0.16 → 0.30), text streams (0.18 → 0.36)
+        var aOp = reveal(span(q, .16, .30)) * fade;
+        var aEl = $('#aiBubble', s);
+        if (aEl) set(aEl, '--a-op', aOp.toFixed(3));
+
+        var body = $('#aiText', s);
+        if (body) {
+          var full = 'Sourdough fails to rise due to inactive starter yeast, improper room temperature, under-proofing, or excess hydration inhibiting gluten structure.';
+          var words = full.split(' ');
+          var prog = span(q, .18, .36);
+          var n = Math.floor(prog * words.length);
+          body.textContent = prog <= 0 ? '' : prog >= 1 ? full : words.slice(0, Math.max(1, n)).join(' ') + '\u2026';
         }
 
-        // 2. User bubble pop up (0.10 -> 0.24)
-        var uOp = reveal(span(q, .10, .24)) * phoneFade;
-        var uBub = $('#userBubble', s);
-        if (uBub) set(uBub, '--user-op', uOp.toFixed(3));
-
-        // 3. AI bubble pop up & text streaming (0.24 -> 0.45)
-        var aOp = reveal(span(q, .24, .40)) * phoneFade;
-        var aBub = $('#aiBubble', s);
-        if (aBub) set(aBub, '--ai-op', aOp.toFixed(3));
-
-        // Progressive word typing effect on AI text
-        var aiTextEl = $('#aiText', s);
-        if (aiTextEl) {
-          var fullText = "Sourdough fails to rise due to inactive starter yeast, improper room temperature, under-proofing, or excess hydration inhibiting gluten structure.";
-          var textProgress = span(q, .26, .44);
-          var wordCount = Math.floor(textProgress * fullText.split(' ').length);
-          var currentText = fullText.split(' ').slice(0, Math.max(1, wordCount)).join(' ');
-          if (textProgress > 0 && textProgress < 1) currentText += '...';
-          aiTextEl.textContent = textProgress > 0 ? currentText : fullText;
-        }
-
-        // 4. Zoom into letter "o" of sourdough didn't rise (0.45 -> 1.0)
-        var r = span(q, .45, 1), t = zin(r);
+        // Zoom into letter "o" (0.38 → 1.0)
+        var r = span(q, .38, 1), t = zin(r);
         var vw = zoom.W * Math.pow(zoom.vwEnd / zoom.W, t);
         var vh = vw * (zoom.H / zoom.W);
         var c = ease(clamp(r / .5, 0, 1));

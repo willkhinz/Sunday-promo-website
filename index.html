@@ -118,28 +118,12 @@
       <text class="zt-line" id="chatL2" x="200" y="162" text-anchor="middle">sourdough didn't rise</text>
     </svg>
 
-    <!-- Interactive Phone Mockup with Dynamic Conversation -->
-    <div class="chat-stage-phone" id="chatPhone" aria-hidden="true">
-      <div class="chat-phone-header">
-        <div class="chat-model-badge">
-          <span class="pulse-dot"></span>
-          <span>Gemma 4 · On-device</span>
-        </div>
-      </div>
-      <div class="chat-phone-body">
-        <div class="chat-bubble user-bubble" id="userBubble">
-          <p>explain why my sourdough didn't rise</p>
-        </div>
-        <div class="chat-bubble ai-bubble" id="aiBubble">
-          <div class="ai-header">
-            <img src="assets/img/mark.png" alt="Sunday" class="ai-avatar">
-            <span class="ai-name">Sunday</span>
-            <span class="ai-badge">Offline</span>
-          </div>
-          <div class="ai-text-content">
-            <p id="aiText">Sourdough fails to rise due to inactive starter yeast, improper room temperature, under-proofing, or excess hydration inhibiting gluten structure.</p>
-          </div>
-        </div>
+    <!-- Floating chat bubbles that pop in on scroll -->
+    <div class="chat-bubbles" id="chatBubbles" aria-hidden="true">
+      <div class="cbub cbub-user" id="userBubble">explain why my sourdough didn't rise</div>
+      <div class="cbub cbub-ai" id="aiBubble">
+        <span class="cbub-ai-label"><img src="assets/img/mark.png" alt="" width="14" height="14"> Sunday · <em>On-device</em></span>
+        <span class="cbub-ai-body" id="aiText"></span>
       </div>
     </div>
 
