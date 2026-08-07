@@ -778,6 +778,7 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   display: grid;
   place-items: center;
   place-content: center;
+  background-color: #000;
   /* Nothing is reserved at the top any more — the header steps aside for
      the walkthrough, so the frames get that band back. The bottom still
      holds a clear band for the caption, wide enough that the text sits

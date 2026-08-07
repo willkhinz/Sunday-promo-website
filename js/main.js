@@ -467,31 +467,19 @@
       }
     }
 
-    /* Scroll-jacking & speed pacing:
-       Bound how fast smoothY can move (in px/sec) and prevent fast flicks
-       from skipping ahead inside the walkthrough. */
+    var TAU = 0.16;
+    var smoothY = null, lastT = 0, running = false;
+
     function frame(t) {
       var dt = lastT ? Math.min((t - lastT) / 1000, 0.05) : 1 / 60;
       lastT = t;
       var target = window.scrollY;
 
-      var insideWalk = (smoothY >= walkTop - 10 && smoothY <= walkEnd + 10);
+      var diff = target - smoothY;
+      var step = diff * (1 - Math.exp(-dt / TAU));
+      smoothY += step;
 
-      if (!insideWalk && (target < walkTop - 100 || target > walkEnd + 100)) {
-        // Scrolled clean out of the walkthrough. Snap.
-        smoothY = target;
-      } else {
-        // Inside walkthrough: enforce speed cap and prevent lag snapping
-        var diff = target - smoothY;
-        var step = diff * (1 - Math.exp(-dt / TAU));
-        
-        // Strict speed cap: max 0.40 viewport heights per second (~2.5s per runway)
-        var cap = window.innerHeight * 0.40 * dt;
-        if (step > cap) step = cap; else if (step < -cap) step = -cap;
-        smoothY += step;
-      }
-
-      if (Math.abs(target - smoothY) < 0.4) { smoothY = target; running = false; }
+      if (Math.abs(target - smoothY) < 0.2) { smoothY = target; running = false; }
       paint(smoothY);
       if (running) requestAnimationFrame(frame); else lastT = 0;
     }
@@ -504,29 +492,10 @@
       requestAnimationFrame(frame);
     }
 
-    return { render: render, measure: measure, getWalkBounds: function() { return { top: walkTop, end: walkEnd }; } };
+    return { render: render, measure: measure };
   }());
 
   var walkEl = document.getElementById('walk');
-
-  /* Wheel scroll-jacking: intercept aggressive wheel flings inside the walkthrough
-     and cap the scroll input delta so the user travels at a enforced pace. */
-  window.addEventListener('wheel', function (e) {
-    if (!walkEl) return;
-    var wr = walkEl.getBoundingClientRect();
-    var inWalk = wr.top <= 10 && wr.bottom >= window.innerHeight - 10;
-    if (!inWalk) return;
-
-    var maxDelta = 75; // max 75px per wheel event inside walkthrough
-    if (Math.abs(e.deltaY) > maxDelta) {
-      e.preventDefault();
-      var sy = window.scrollY || window.pageYOffset;
-      window.scrollTo({
-        top: sy + Math.sign(e.deltaY) * maxDelta,
-        behavior: 'instant'
-      });
-    }
-  }, { passive: false });
 
   function onScroll() {
     var y = window.scrollY || window.pageYOffset;
