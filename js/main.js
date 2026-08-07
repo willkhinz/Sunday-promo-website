@@ -467,33 +467,26 @@
       }
     }
 
-    /* How far the animation may fall behind the real scroll, in steps.
-       Generous on purpose: falling behind is how a transition keeps its
-       pace when someone flings the page, and the pinned stage means the
-       backlog plays out on screen rather than off it. Bounded so a fling
-       inside the walkthrough cannot leave minutes of animation queued. */
-    var MAXLAG = 3;
-
+    /* Scroll-jacking & speed pacing:
+       Bound how fast smoothY can move (in px/sec) and prevent fast flicks
+       from skipping ahead inside the walkthrough. */
     function frame(t) {
       var dt = lastT ? Math.min((t - lastT) / 1000, 0.05) : 1 / 60;
       lastT = t;
       var target = window.scrollY;
 
-      if (target < walkTop - 4 || target > walkEnd + 4) {
-        // Scrolled clean out of the walkthrough. Snap, or a pinned stage
-        // would sit over whatever is actually on screen now.
+      var insideWalk = (smoothY >= walkTop - 10 && smoothY <= walkEnd + 10);
+
+      if (!insideWalk && (target < walkTop - 100 || target > walkEnd + 100)) {
+        // Scrolled clean out of the walkthrough. Snap.
         smoothY = target;
       } else {
-        var lag = steps[0].runway * MAXLAG;
-        if (target - smoothY > lag) smoothY = target - lag;
-        else if (smoothY - target > lag) smoothY = target + lag;
+        // Inside walkthrough: enforce speed cap and prevent lag snapping
         var diff = target - smoothY;
         var step = diff * (1 - Math.exp(-dt / TAU));
-        // A step's runway is ~1.5 viewport heights; this rate lets the chase
-        // cross the whole thing in ~2.4s, so no single hand-off inside it —
-        // each spans a fraction of the runway — can finish in under a second,
-        // however abruptly the actual scroll position moves.
-        var cap = window.innerHeight * 0.62 * dt;
+        
+        // Strict speed cap: max 0.40 viewport heights per second (~2.5s per runway)
+        var cap = window.innerHeight * 0.40 * dt;
         if (step > cap) step = cap; else if (step < -cap) step = -cap;
         smoothY += step;
       }
@@ -511,10 +504,29 @@
       requestAnimationFrame(frame);
     }
 
-    return { render: render, measure: measure };
+    return { render: render, measure: measure, getWalkBounds: function() { return { top: walkTop, end: walkEnd }; } };
   }());
 
   var walkEl = document.getElementById('walk');
+
+  /* Wheel scroll-jacking: intercept aggressive wheel flings inside the walkthrough
+     and cap the scroll input delta so the user travels at a enforced pace. */
+  window.addEventListener('wheel', function (e) {
+    if (!walkEl) return;
+    var wr = walkEl.getBoundingClientRect();
+    var inWalk = wr.top <= 10 && wr.bottom >= window.innerHeight - 10;
+    if (!inWalk) return;
+
+    var maxDelta = 75; // max 75px per wheel event inside walkthrough
+    if (Math.abs(e.deltaY) > maxDelta) {
+      e.preventDefault();
+      var sy = window.scrollY || window.pageYOffset;
+      window.scrollTo({
+        top: sy + Math.sign(e.deltaY) * maxDelta,
+        behavior: 'instant'
+      });
+    }
+  }, { passive: false });
 
   function onScroll() {
     var y = window.scrollY || window.pageYOffset;
