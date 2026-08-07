@@ -21,11 +21,7 @@
      the first; the second is usually the smaller file for everyone else.
      `poster` is optional — the slot's own <img> is used when it is
      absent. */
-  var CLIPS = {
-    hero:   { mp4: 'assets/video/privateaitrial-insta-ready.mp4' },
-    answer: { mp4: 'assets/video/privateaitrial-insta-ready.mp4' },
-    tune:   { mp4: 'assets/video/tune.mp4' }
-  };
+  var CLIPS = {};
 
   (function mountClips() {
     var slots = document.querySelectorAll('[data-clip]');
@@ -532,33 +528,13 @@
 
   var ticking = false;
   window.addEventListener('scroll', function () {
-    var y = window.scrollY || window.pageYOffset;
-
-    // Enforce step pacing inside #walk: clamp fast scrolling jumps so users can't overshoot to lower sections
-    if (walkEl && !reduced) {
-      var bounds = walk.getWalkBounds();
-      if (bounds && bounds.top > 0 && bounds.end > bounds.top) {
-        var curSmooth = walk.getSmoothY();
-        if (curSmooth >= bounds.top - 20 && curSmooth < bounds.end - 40) {
-          var maxAhead = window.innerHeight * 1.35;
-          if (y > curSmooth + maxAhead) {
-            window.scrollTo(0, curSmooth + maxAhead);
-            y = curSmooth + maxAhead;
-          } else if (y < curSmooth - maxAhead && y > bounds.top) {
-            window.scrollTo(0, Math.max(bounds.top, curSmooth - maxAhead));
-            y = Math.max(bounds.top, curSmooth - maxAhead);
-          }
-        }
-      }
-    }
-
     if (ticking) return;
     ticking = true;
     window.requestAnimationFrame(function () {
       onScroll();
       ticking = false;
     });
-  }, { passive: false });
+  }, { passive: true });
 
   onScroll();
 
