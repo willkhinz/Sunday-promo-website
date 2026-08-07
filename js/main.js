@@ -22,9 +22,9 @@
      `poster` is optional — the slot's own <img> is used when it is
      absent. */
   var CLIPS = {
-    // hero:   { mp4: 'assets/video/hero-answer.mp4', webm: 'assets/video/hero-answer.webm' },
-    // answer: { mp4: 'assets/video/offline.mp4',     webm: 'assets/video/offline.webm' },
-    // tune:   { mp4: 'assets/video/tune.mp4',        webm: 'assets/video/tune.webm' }
+    hero:   { mp4: 'assets/video/hero-answer.mp4', webm: 'assets/video/hero-answer.webm' },
+    answer: { mp4: 'assets/video/hero-answer.mp4', webm: 'assets/video/hero-answer.webm' },
+    tune:   { mp4: 'assets/video/tune.mp4',        webm: 'assets/video/tune.webm' }
   };
 
   (function mountClips() {
