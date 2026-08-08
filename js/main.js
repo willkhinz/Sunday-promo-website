@@ -463,7 +463,7 @@
       }
     }
 
-    var TAU = 0.16;
+    var TAU = 0.24;
     var smoothY = null, lastT = 0, running = false;
 
     function frame(t) {

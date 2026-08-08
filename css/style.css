@@ -1085,6 +1085,34 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   will-change: transform, opacity;
 }
 
+/* ── Mobile & Touch Pacing Adjustments ───────────────────── */
+@media (max-width: 768px) {
+  /* Hide the hero phone screenshot mockup on mobile screens for clean typography hero */
+  .hero-shot {
+    display: none !important;
+  }
+  .hero-grid {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  .hero-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .hero .lede {
+    margin-inline: auto;
+  }
+
+  /* Extend walkthrough runway height on mobile so touch swipe momentum is comfortably paced */
+  #walk .step {
+    height: 480vh;
+  }
+  #walk #know.step {
+    height: 600vh;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   /* No scroll driver runs, so the frame must not stay folded shut. */
   .hero-shot .phone { animation: none !important; transform: none !important; opacity: 1 !important; }
