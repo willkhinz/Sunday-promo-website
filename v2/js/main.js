@@ -270,10 +270,6 @@
   var ringTarget = 0, ringNow = 0, ringFace = -1, ringLocked = false;
   var cardVis = [];
 
-  cards.forEach(function (card, i) {
-    card.style.transform = 'rotateY(' + (i * STEP) + 'deg) translateZ(' + RADIUS + 'px)';
-  });
-
   /* The controls are built unconditionally and work in both modes. The
      previous build created them outside the reduced-motion guard but only
      ever moved the ring from inside the rAF loop — so with Reduce Motion on,
