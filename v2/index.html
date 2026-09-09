@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sunday — A private AI that never leaves your phone</title>
+<meta name="description" content="Sunday runs Google's Gemma 4 entirely on your iPhone. See photos, hear voice notes, watch videos, read PDFs. No account, no servers, no data collection.">
+<meta name="theme-color" content="#ffffff">
+
+<link rel="icon" href="../assets/img/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/img/icon.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- Regular material, per HIG: the bar floats above content, content runs
+     full-bleed underneath it. -->
+<header class="bar" id="bar">
+  <div class="bar-inner">
+    <a class="brand" href="#top">
+      <img src="../assets/img/mark.png" width="128" height="128" alt="">
+      <span>Sunday</span>
+    </a>
+    <a class="btn btn-plain" href="https://apps.apple.com/us/app/sundayai/id6777877980">Get&nbsp;the&nbsp;app</a>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ───────────────── hero: a solid object you can turn ───────────────── -->
+<section class="hero" id="top">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <p class="eyebrow anim" data-anim>On-device AI for iPhone</p>
+      <h1 class="anim" data-anim data-anim-delay="1">A private AI that never leaves your phone.</h1>
+      <p class="lede anim" data-anim data-anim-delay="2">Google's Gemma 4, running entirely on your iPhone. Ask it anything, show it a photo, play it a voice note — the model thinks on your device, not on someone's server.</p>
+      <div class="cta anim" data-anim data-anim-delay="3">
+        <a class="btn btn-filled" href="https://apps.apple.com/us/app/sundayai/id6777877980">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.05 12.53c-.02-2.2 1.8-3.26 1.88-3.31-1.02-1.5-2.61-1.71-3.18-1.73-1.35-.14-2.64.79-3.33.79-.69 0-1.75-.77-2.87-.75-1.48.02-2.84.86-3.6 2.18-1.53 2.66-.39 6.6 1.1 8.76.73 1.06 1.6 2.24 2.75 2.2 1.1-.05 1.52-.71 2.85-.71 1.33 0 1.71.71 2.87.69 1.19-.02 1.94-1.07 2.66-2.13.84-1.22 1.19-2.4 1.21-2.46-.03-.01-2.32-.89-2.34-3.53zM14.88 5.6c.61-.74 1.02-1.77.91-2.79-.88.04-1.94.59-2.57 1.32-.56.65-1.05 1.7-.92 2.7.98.08 1.98-.5 2.58-1.23z"/></svg>
+          Download on the App&nbsp;Store
+        </a>
+        <p class="foot">iPhone · No account required</p>
+      </div>
+    </div>
+
+    <!-- A real object: six faces with genuine thickness, not a picture of a
+         phone. Drag it. -->
+    <div class="scene scene-hero" id="heroScene">
+      <div class="solid device" id="device" role="img"
+           aria-label="Sunday answering a question on iPhone, with the network switched off.">
+        <div class="fc fc-fb front">
+          <video autoplay muted loop playsinline preload="metadata" poster="../assets/img/chat.webp">
+            <source src="../assets/video/hero-answer.webm" type="video/webm">
+            <source src="../assets/video/hero-answer.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="fc fc-fb back"></div>
+        <div class="fc fc-lr left"></div>
+        <div class="fc fc-lr right"></div>
+        <div class="fc fc-tb top"></div>
+        <div class="fc fc-tb bottom"></div>
+      </div>
+      <div class="shadow" id="deviceShadow" aria-hidden="true"></div>
+      <p class="hint" id="dragHint" aria-hidden="true">Drag to turn</p>
+    </div>
+  </div>
+
+  <ul class="proof wrap">
+    <li class="anim" data-anim><b>No</b> account</li>
+    <li class="anim" data-anim data-anim-delay="1"><b>No</b> servers</li>
+    <li class="anim" data-anim data-anim-delay="2"><b>No</b> data collection</li>
+  </ul>
+</section>
+
+<!-- ───────────────── capabilities: a carousel in real space ───────────── -->
+<section class="section" id="does">
+  <div class="wrap head">
+    <p class="eyebrow anim" data-anim>Capabilities</p>
+    <h2 class="anim" data-anim data-anim-delay="1">Eleven things it does without phoning home.</h2>
+    <p class="sub anim" data-anim data-anim-delay="2">Every one of them runs on the phone in your hand.</p>
+  </div>
+
+  <!-- Six screens standing on a cylinder. Scroll turns the cylinder; the
+       screen nearest the camera is the one being described. -->
+  <div class="scene scene-ring" id="ringScene">
+    <div class="ring" id="ring">
+      <div class="card" data-label="See" data-note="Show it a photo. It tells you what's actually in there.">
+        <img src="../assets/img/see.webp" alt="Sunday describing a cross-hatched drawing." loading="lazy">
+      </div>
+      <div class="card" data-label="Hear" data-note="Play it a recording and ask what it means.">
+        <img src="../assets/img/hear.webp" alt="Sunday summarising a song from audio." loading="lazy">
+      </div>
+      <div class="card" data-label="Watch" data-note="Video, sampled frame by frame, then summarised.">
+        <img src="../assets/img/watch.webp" alt="Sunday working through a video frame by frame." loading="lazy">
+      </div>
+      <div class="card" data-label="Read" data-note="Hand it a PDF and ask what you need to do.">
+        <img src="../assets/img/read.webp" alt="Sunday breaking a PDF into a checklist." loading="lazy">
+      </div>
+      <div class="card" data-label="Think" data-note="Watch it reason through the problem, step by step.">
+        <img src="../assets/img/think.webp" alt="Thinking Mode showing visible reasoning." loading="lazy">
+      </div>
+      <div class="card" data-label="Chat" data-note="Ask it anything. It answers straight away.">
+        <img src="../assets/img/chat.webp" alt="A conversation with Sunday." loading="lazy">
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap ring-cap">
+    <p class="ring-title" id="ringTitle">See</p>
+    <p class="ring-note" id="ringNote">Show it a photo. It tells you what's actually in there.</p>
+    <ol class="dots" id="ringDots" aria-label="Capability"></ol>
+  </div>
+</section>
+
+<!-- ───────────────── the stack, pulled apart in depth ─────────────────── -->
+<section class="section section-grouped" id="stack">
+  <div class="wrap head">
+    <p class="eyebrow anim" data-anim>Under the hood</p>
+    <h2 class="anim" data-anim data-anim-delay="1">A real frontier model, quantized to fit.</h2>
+    <p class="sub anim" data-anim data-anim-delay="2">Three layers, all of them on the phone. Scroll to pull them apart.</p>
+  </div>
+
+  <!-- Genuine depth: three planes at different Z, separating in real time. -->
+  <div class="scene scene-stack" id="stackScene">
+    <div class="stack" id="stackObj">
+      <div class="plane p1"><span>Interface</span><img src="../assets/img/chat.webp" alt="" loading="lazy"></div>
+      <div class="plane p2"><span>Gemma 4 · INT4</span><em>2.5B effective parameters</em></div>
+      <div class="plane p3"><span>MLX on Apple silicon</span><em>Neural Engine</em></div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <dl class="list list-inset" id="specs">
+      <div><dt>Model</dt><dd>Gemma 4 E2B (INT4)</dd></div>
+      <div><dt>Engine</dt><dd>MLX Swift</dd></div>
+      <div><dt>Parameters</dt><dd>~2.5B effective</dd></div>
+      <div><dt>Quantization</dt><dd>4-bit</dd></div>
+      <div><dt>Context</dt><dd>128K tokens</dd></div>
+    </dl>
+    <p class="foot wrap-foot">Vision fidelity, video sampling depth, temperature, and response length are all yours to tune. Sunday bundles Gemma 4 weights under Google's Gemma Terms of Use.</p>
+  </div>
+</section>
+
+<!-- ───────────────── no connection ────────────────────────────────────── -->
+<section class="section" id="offline">
+  <div class="wrap">
+    <div class="film anim" data-anim>
+      <video autoplay muted loop playsinline preload="none" poster="../assets/video/hero-poster.webp">
+        <source src="../assets/video/hero.webm" type="video/webm">
+        <source src="../assets/video/hero.mp4" type="video/mp4">
+      </video>
+      <div class="film-copy">
+        <p class="eyebrow light">Live</p>
+        <h2 class="light">No upload. No spinner. It just starts writing.</h2>
+        <p class="sub light">In a tunnel, on a plane, or with the radios switched off entirely.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────── privacy: grouped list ────────────────────────────── -->
+<section class="section section-grouped" id="privacy">
+  <div class="wrap head">
+    <p class="eyebrow anim" data-anim>Privacy</p>
+    <h2 class="anim" data-anim data-anim-delay="1">The private version isn't a setting. It's the architecture.</h2>
+    <p class="sub anim" data-anim data-anim-delay="2">Most assistants promise not to misuse what you send them. Sunday is built so there's nothing to send.</p>
+  </div>
+  <div class="wrap">
+    <ul class="list list-inset">
+      <li class="anim" data-anim>
+        <p class="row-title">No account, no sign-up</p>
+        <p class="row-note">There's no login screen, because there's no server holding a profile of you.</p>
+      </li>
+      <li class="anim" data-anim data-anim-delay="1">
+        <p class="row-title">Your files stay put</p>
+        <p class="row-note">Photos, recordings, videos, and PDFs are processed on your device. They are never uploaded for analysis.</p>
+      </li>
+      <li class="anim" data-anim data-anim-delay="2">
+        <p class="row-title">It works with no connection</p>
+        <p class="row-note">The model is on your phone, so it answers anywhere the signal drops out.</p>
+      </li>
+      <li class="anim" data-anim data-anim-delay="3">
+        <p class="row-title">The internet is opt-in</p>
+        <p class="row-note">Sunday can pull live results for news, scores, and prices — but only when you give it permission.</p>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ───────────────── finale ───────────────────────────────────────────── -->
+<section class="section finale">
+  <div class="wrap">
+    <h2 class="anim" data-anim>Knowledge for the frontier.</h2>
+    <p class="sub anim" data-anim data-anim-delay="1">Everything runs privately, on your device, at your pace.</p>
+    <div class="cta anim" data-anim data-anim-delay="2">
+      <a class="btn btn-filled" href="https://apps.apple.com/us/app/sundayai/id6777877980">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.05 12.53c-.02-2.2 1.8-3.26 1.88-3.31-1.02-1.5-2.61-1.71-3.18-1.73-1.35-.14-2.64.79-3.33.79-.69 0-1.75-.77-2.87-.75-1.48.02-2.84.86-3.6 2.18-1.53 2.66-.39 6.6 1.1 8.76.73 1.06 1.6 2.24 2.75 2.2 1.1-.05 1.52-.71 2.85-.71 1.33 0 1.71.71 2.87.69 1.19-.02 1.94-1.07 2.66-2.13.84-1.22 1.19-2.4 1.21-2.46-.03-.01-2.32-.89-2.34-3.53zM14.88 5.6c.61-.74 1.02-1.77.91-2.79-.88.04-1.94.59-2.57 1.32-.56.65-1.05 1.7-.92 2.7.98.08 1.98-.5 2.58-1.23z"/></svg>
+        Download on the App&nbsp;Store
+      </a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-inner">
+    <a class="brand" href="#top"><img src="../assets/img/mark.png" width="128" height="128" alt=""><span>Sunday</span></a>
+    <p class="foot">Made by Will</p>
+    <nav class="footer-links">
+      <a href="https://apps.apple.com/us/app/sundayai/id6777877980">App Store</a>
+      <a href="#privacy">Privacy</a>
+      <a href="#stack">Tech</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="js/main.js" defer></script>
+</body>
+</html>

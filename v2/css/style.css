@@ -1,0 +1,525 @@
+/* ============================================================
+   Sunday — light build
+
+   Everything numeric here comes from the Human Interface Guidelines
+   rather than from taste:
+
+   · Type is the iOS Dynamic Type ladder at the Large (default) size —
+     Large Title 34/41, Title 1 28/34, Title 2 22/28, Title 3 20/25,
+     Headline and Body 17/22, Callout 16/21, Subhead 15/20, Footnote
+     13/18, Caption 12/16. Body is 17pt because that is what the HIG
+     says body is. Nothing drops below the 11pt floor.
+   · Weights stay in Regular / Medium / Semibold / Bold. The HIG asks
+     for Ultralight, Thin and Light to be avoided.
+   · Colour is the system palette: systemBlue light is rgb(0 136 255),
+     systemGray rgb(142 142 147), systemGray6 rgb(242 242 247). Colour
+     is used sparingly and sits on the background of prominent actions
+     rather than on text or symbols, as the Liquid Glass colour
+     guidance asks.
+   · Controls are at least 44x44pt with ~12pt of padding around bezelled
+     elements, per the accessibility minimums.
+   · Contrast targets WCAG AA as the Accessibility Inspector applies it:
+     4.5:1 up to 17pt, 3:1 at 18pt or bold.
+
+   The one place this knowingly leaves the ladder is display type. The
+   Dynamic Type scale tops out at Large Title 34pt, which is an app
+   spec; a marketing page needs more. So Large Title is the floor and
+   it scales up with the viewport, keeping the ladder's ratios.
+   ============================================================ */
+
+:root {
+  /* system backgrounds (light) */
+  --bg:            #fff;
+  --bg-grouped:    rgb(242 242 247);          /* systemGray6 */
+  --bg-elevated:   #fff;
+
+  /* Semantic labels. secondaryLabel is .74 rather than the platform's .60:
+     at .60 it measures 3.44:1 on white and 3.29:1 on systemGray6, and the
+     HIG's own contrast bar for text at or below 17pt is 4.5:1. .74 clears
+     both grounds (5.0 and 4.74). tertiaryLabel stays where it is and is
+     used only for marks that are not carrying information — the inactive
+     page dots, which are backed by aria-current rather than by colour. */
+  --label:         rgb(0 0 0);
+  --label-2:       rgb(60 60 67 / .74);
+  --label-3:       rgb(60 60 67 / .30);
+  --separator:     rgb(60 60 67 / .29);
+  --separator-o:   rgb(198 198 200);          /* opaque separator */
+
+  /* This is systemBlue's *increased contrast* light value, used as the
+     default. Plain systemBlue rgb(0 136 255) measures 3.52:1 against white,
+     which fails 4.5:1 both as a label and under white button text; the
+     increased-contrast value measures 4.57:1 and passes as either, since
+     contrast is symmetric. */
+  --tint:          rgb(30 110 244);
+  --tint-press:    rgb(20 92 210);
+  --gray:          rgb(142 142 147);          /* systemGray */
+
+  /* SF Pro is the system face; ui-rounded is the only way to reach SF
+     Pro Rounded from the web, which is what the app uses for display. */
+  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui,
+          "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --round: ui-rounded, -apple-system, BlinkMacSystemFont, system-ui,
+           "Segoe UI Variable Display", "Segoe UI", Roboto, sans-serif;
+
+  --wrap: 1040px;
+  --gut: 22px;
+
+  /* Corner radii follow the platform's continuous-corner feel. */
+  --r-row: 10px;
+  --r-card: 18px;
+  --r-big: 28px;
+
+  /* Motion. The HIG asks for brief, precise, purposeful movement, so
+     these are short and the springs are gentle rather than bouncy. */
+  --ease: cubic-bezier(.32, .72, 0, 1);
+  --ease-soft: cubic-bezier(.4, 0, .2, 1);
+}
+
+* { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  overflow-x: clip;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--label);
+  font-family: var(--sans);
+  font-size: 17px;        /* Body */
+  line-height: 22px;
+  letter-spacing: -.01em;
+  -webkit-font-smoothing: antialiased;
+}
+
+img, video { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+p, h1, h2, h3, dl, dd, ul, ol { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+
+.wrap {
+  width: 100%;
+  max-width: var(--wrap);
+  margin-inline: auto;
+  padding-inline: var(--gut);
+}
+
+.skip {
+  position: absolute; left: -9999px; top: 0; z-index: 100;
+  padding: 12px 18px; background: var(--tint); color: #fff;
+  border-radius: 0 0 var(--r-row) 0; font-weight: 600;
+}
+.skip:focus { left: 0; }
+
+:focus-visible {
+  outline: 3px solid var(--tint);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* ── type ladder ───────────────────────────────────────────── */
+
+h1 {
+  font-family: var(--round);
+  font-weight: 700;
+  /* Large Title 34/41 as the floor, scaled for a marketing page. */
+  font-size: clamp(34px, 6.4vw, 64px);
+  line-height: 1.06;
+  letter-spacing: -.035em;
+  text-wrap: balance;
+}
+
+h2 {
+  font-family: var(--round);
+  font-weight: 700;
+  /* Title 1 28/34, scaled. */
+  font-size: clamp(28px, 4.2vw, 44px);
+  line-height: 1.1;
+  letter-spacing: -.028em;
+  text-wrap: balance;
+}
+
+.eyebrow {                                  /* Footnote 13/18, emphasised */
+  font-size: 13px; line-height: 18px; font-weight: 600;
+  letter-spacing: .06em; text-transform: uppercase;
+  color: var(--tint);
+  margin-bottom: 10px;
+}
+
+.lede {                                     /* Title 3 20/25, scaled a little */
+  font-size: clamp(19px, 1.9vw, 22px);
+  line-height: 1.45;
+  color: var(--label-2);
+  margin-top: 14px;
+  max-width: 34ch;
+}
+
+.sub {                                      /* Callout 16/21 → body-ish */
+  font-size: 17px; line-height: 24px;
+  color: var(--label-2);
+  margin-top: 12px;
+  max-width: 60ch;
+}
+
+.foot {                                     /* Footnote 13/18 */
+  font-size: 13px; line-height: 18px;
+  color: var(--label-2);                    /* it is information, so it clears AA */
+}
+
+/* ── controls ──────────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 8px;
+  min-height: 44px;                          /* HIG hit target */
+  padding: 12px 20px;                        /* ~12pt around a bezelled control */
+  border-radius: 980px;
+  font-size: 17px; line-height: 22px; font-weight: 600;
+  letter-spacing: -.01em;
+  transition: transform .22s var(--ease), background-color .22s var(--ease-soft),
+              opacity .22s var(--ease-soft);
+}
+.btn svg { width: 20px; height: 20px; flex: none; margin-top: -2px; }
+
+/* Colour on the background of the prominent action, not on its label. */
+.btn-filled { background: var(--tint); color: #fff; }
+.btn-filled:active { background: var(--tint-press); transform: scale(.97); }
+
+.btn-plain { color: var(--tint); padding-inline: 12px; }
+.btn-plain:active { opacity: .5; }
+
+@media (hover: hover) {
+  .btn-filled:hover { background: var(--tint-press); }
+  .btn-plain:hover { opacity: .7; }
+}
+
+/* ── bar (regular material) ────────────────────────────────── */
+
+.bar {
+  position: sticky; top: 0; z-index: 60;
+  background: rgb(255 255 255 / .72);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid transparent;
+  transition: border-color .3s var(--ease-soft), background-color .3s var(--ease-soft);
+}
+.bar.is-stuck { border-bottom-color: var(--separator); }
+
+.bar-inner {
+  max-width: var(--wrap); margin-inline: auto;
+  padding: 6px var(--gut);
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+}
+
+.brand { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; }
+.brand img { width: 26px; height: 26px; border-radius: 6px; }
+.brand span { font-weight: 600; font-size: 17px; letter-spacing: -.02em; }
+
+/* ── sections ──────────────────────────────────────────────── */
+
+.section { padding-block: clamp(64px, 9vw, 128px); }
+.section-grouped { background: var(--bg-grouped); }
+.head { max-width: 42ch; margin-bottom: clamp(32px, 4vw, 56px); }
+
+/* ── hero ──────────────────────────────────────────────────── */
+
+.hero { padding-top: clamp(28px, 5vw, 64px); padding-bottom: clamp(40px, 6vw, 80px); }
+
+.hero-grid { display: grid; gap: clamp(32px, 5vw, 64px); align-items: center; }
+@media (min-width: 900px) {
+  .hero-grid { grid-template-columns: 1.05fr .95fr; }
+}
+
+.cta { margin-top: 28px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+
+.proof {
+  display: flex; flex-wrap: wrap; gap: 8px 28px;
+  margin-top: clamp(40px, 6vw, 72px);
+  padding-top: 20px;
+  border-top: 1px solid var(--separator);
+  font-size: 15px; line-height: 20px;       /* Subhead */
+  color: var(--label-2);
+}
+.proof b { color: var(--label); font-weight: 600; }
+
+/* ── 3D scenes ─────────────────────────────────────────────────
+   Real perspective, real objects. Each scene is a camera; the things
+   inside it are built from planes in `preserve-3d` space rather than
+   drawn flat and scaled. */
+
+.scene { perspective: 1400px; perspective-origin: 50% 45%; }
+.scene-hero {
+  position: relative;
+  display: grid; place-items: center;
+  min-height: 620px;
+  touch-action: pan-y;                       /* let the page still scroll */
+}
+
+.solid { transform-style: preserve-3d; will-change: transform; }
+.fc { position: absolute; left: 50%; top: 50%; overflow: hidden; }
+
+/* The device: 6 faces, genuine thickness. */
+.device {
+  --w: 280px; --h: 608px; --d: 26px;
+  position: relative; width: var(--w); height: var(--h);
+  cursor: grab;
+}
+.device.is-held { cursor: grabbing; }
+
+.fc-fb { width: var(--w); height: var(--h); margin-left: calc(var(--w) / -2); margin-top: calc(var(--h) / -2); border-radius: 42px; }
+.fc-lr { width: var(--d); height: var(--h); margin-left: calc(var(--d) / -2); margin-top: calc(var(--h) / -2); }
+.fc-tb { width: var(--w); height: var(--d); margin-left: calc(var(--w) / -2); margin-top: calc(var(--d) / -2); }
+
+.front  { transform: translateZ(calc(var(--d) / 2)); background: #000; }
+.back   { transform: rotateY(180deg) translateZ(calc(var(--d) / 2));
+          background: linear-gradient(150deg, #f2f2f7, #d8d8dd 60%, #eaeaef);
+          border: 1px solid rgb(0 0 0 / .06); }
+.right  { transform: rotateY(90deg)  translateZ(calc(var(--w) / 2)); }
+.left   { transform: rotateY(-90deg) translateZ(calc(var(--w) / 2)); }
+.top    { transform: rotateX(90deg)  translateZ(calc(var(--h) / 2)); }
+.bottom { transform: rotateX(-90deg) translateZ(calc(var(--h) / 2)); }
+
+/* The rails read as machined aluminium, so the object has a material. */
+.left, .right, .top, .bottom {
+  background: linear-gradient(90deg, #8e8e93, #d1d1d6 35%, #f2f2f7 50%, #c7c7cc 68%, #8e8e93);
+}
+.top, .bottom { background: linear-gradient(0deg, #8e8e93, #d1d1d6 35%, #f2f2f7 50%, #c7c7cc 68%, #8e8e93); }
+
+.front video, .front img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Contact shadow. It tracks the object's tilt in main.js. */
+.shadow {
+  position: absolute; z-index: -1;
+  width: 300px; height: 44px; border-radius: 50%;
+  background: radial-gradient(ellipse, rgb(0 0 0 / .22), transparent 70%);
+  filter: blur(14px);
+  pointer-events: none;
+}
+
+.hint {
+  position: absolute; bottom: 8px; left: 50%; translate: -50% 0;
+  font-size: 13px; line-height: 18px; color: var(--label-2);
+  transition: opacity .4s var(--ease-soft);
+}
+.hint.is-gone { opacity: 0; }
+
+/* ── the ring ──────────────────────────────────────────────── */
+
+.scene-ring {
+  position: relative;
+  height: clamp(460px, 62vw, 620px);
+  margin-block: clamp(8px, 2vw, 24px);
+  perspective: 1200px;
+}
+.ring {
+  position: absolute; inset: 0;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.ring .card {
+  position: absolute; left: 50%; top: 50%;
+  width: 232px; height: 504px;
+  margin-left: -116px; margin-top: -252px;
+  border-radius: 34px; overflow: hidden;
+  background: #000;
+  border: 1px solid rgb(0 0 0 / .08);
+  box-shadow: 0 24px 60px -24px rgb(0 0 0 / .38);
+  transition: opacity .3s var(--ease-soft);
+}
+.ring .card img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+
+.ring-cap { text-align: center; }
+.ring-title {
+  font-family: var(--round); font-weight: 700;
+  font-size: 22px; line-height: 28px;        /* Title 2 */
+  letter-spacing: -.02em;
+}
+.ring-note {
+  font-size: 15px; line-height: 20px;        /* Subhead */
+  color: var(--label-2); margin-top: 6px;
+  min-height: 40px;
+}
+.ring-title, .ring-note { transition: opacity .2s var(--ease-soft); }
+
+.dots { display: flex; justify-content: center; gap: 8px; margin-top: 18px; }
+.dots button {
+  width: 44px; height: 44px;                 /* HIG hit target … */
+  padding: 0; border: 0; background: none; cursor: pointer;
+  display: grid; place-items: center;
+}
+.dots button::before {                        /* … around a 7pt dot */
+  content: ""; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--label-3);
+  transition: background-color .25s var(--ease-soft), transform .25s var(--ease);
+}
+.dots button[aria-current="true"]::before { background: var(--tint); transform: scale(1.35); }
+
+/* ── the stack ─────────────────────────────────────────────── */
+
+.scene-stack {
+  height: clamp(380px, 46vw, 520px);
+  display: grid; place-items: center;
+  perspective: 1600px;
+  perspective-origin: 50% 50%;
+}
+.stack { position: relative; width: 300px; height: 300px; transform-style: preserve-3d; will-change: transform; }
+.plane {
+  position: absolute; left: 50%; top: 50%;
+  width: 300px; height: 300px; margin-left: -150px; margin-top: -150px;
+  border-radius: var(--r-card);
+  display: grid; align-content: center; justify-items: center; gap: 6px;
+  font-size: 15px; line-height: 20px; font-weight: 600;
+  text-align: center; padding: 20px;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+.plane em { font-style: normal; font-weight: 400; font-size: 13px; color: var(--label-2); }
+.plane img { width: 92px; border-radius: 12px; margin-top: 8px; }
+.p1 { background: rgb(255 255 255 / .92); border: 1px solid var(--separator); box-shadow: 0 22px 50px -26px rgb(0 0 0 / .5); }
+.p2 { background: rgb(0 136 255 / .10); border: 1px solid rgb(0 136 255 / .35); color: var(--tint); }
+.p3 { background: rgb(142 142 147 / .16); border: 1px solid rgb(142 142 147 / .5); }
+
+/* ── grouped lists (inset style) ───────────────────────────── */
+
+.list {
+  background: var(--bg-elevated);
+  border-radius: var(--r-card);
+  overflow: hidden;
+}
+.list-inset > * + * { border-top: 1px solid var(--separator); }
+.list li, .list > div { padding: 14px 18px; }
+
+.list > div { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; }
+.list dt { font-size: 17px; line-height: 22px; color: var(--label); }
+.list dd { font-size: 17px; line-height: 22px; color: var(--label-2); text-align: right; font-variant-numeric: tabular-nums; }
+
+.row-title { font-size: 17px; line-height: 22px; font-weight: 600; }   /* Headline */
+.row-note { font-size: 15px; line-height: 20px; color: var(--label-2); margin-top: 3px; }
+
+.wrap-foot { margin-top: 14px; }
+
+/* ── film band ─────────────────────────────────────────────── */
+
+.film {
+  position: relative; overflow: hidden;
+  border-radius: var(--r-big);
+  min-height: clamp(360px, 48vw, 560px);
+  display: grid; align-items: end;
+  isolation: isolate;
+}
+.film video {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; z-index: -1;
+}
+.film::after {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(to top, rgb(0 0 0 / .78) 0%, rgb(0 0 0 / .35) 45%, rgb(0 0 0 / .12) 100%);
+}
+.film-copy { padding: clamp(24px, 4vw, 48px); }
+.light { color: #fff; }
+.eyebrow.light { color: rgb(255 255 255 / .8); }
+.sub.light { color: rgb(255 255 255 / .78); }
+
+/* ── finale + footer ───────────────────────────────────────── */
+
+.finale { text-align: center; }
+.finale .sub { margin-inline: auto; }
+.finale .cta { align-items: center; }
+.finale .cta { margin-top: 28px; }
+
+.footer {
+  border-top: 1px solid var(--separator);
+  padding-block: 32px;
+}
+.footer-inner { display: flex; flex-direction: column; gap: 14px; }
+.footer-links { display: flex; flex-wrap: wrap; gap: 0 10px; font-size: 15px; color: var(--tint); }
+/* 44pt of target around a 15pt label, per the accessibility minimums —
+   the text is the label, the padding is the control. */
+.footer-links a {
+  display: inline-flex; align-items: center;
+  min-height: 44px; min-width: 44px; justify-content: center;
+  padding-inline: 8px;
+}
+@media (min-width: 620px) {
+  .footer-inner { flex-direction: row; align-items: center; justify-content: space-between; }
+  .footer .foot { order: 3; }
+}
+
+/* ── entrance ──────────────────────────────────────────────── */
+
+.anim {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity .5s var(--ease-soft), transform .5s var(--ease);
+}
+.anim.is-in { opacity: 1; transform: none; }
+
+/* ============================================================
+   Increase Contrast
+
+   The HIG asks that where defaults do not meet the contrast bar, a
+   higher-contrast scheme is provided at minimum. The defaults above
+   already clear AA, so this goes further rather than catching up:
+   labels go fully opaque, separators become the opaque separator
+   colour, and the tint darkens again.
+   ============================================================ */
+
+@media (prefers-contrast: more) {
+  :root {
+    --label-2:   rgb(60 60 67 / .92);
+    --label-3:   rgb(60 60 67 / .6);
+    --separator: var(--separator-o);
+    --tint:      rgb(0 98 199);
+    --tint-press: rgb(0 84 172);
+  }
+  .bar { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .list { border: 1px solid var(--separator-o); }
+  .ring .card { border-color: rgb(0 0 0 / .3); }
+}
+
+/* ============================================================
+   Reduce Motion
+
+   The HIG is specific here: reduce automatic and repetitive animation,
+   avoid z-axis depth animation, replace x/y/z transitions with fades,
+   and avoid animating into and out of blurs. This build is almost
+   entirely z-axis, so under this setting the objects stop being
+   objects: the scenes flatten to their front faces and everything
+   arrives by fade.
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+
+  .anim { opacity: 1; transform: none; }
+
+  /* Flatten every scene: no perspective, no depth, no rotation. */
+  .scene { perspective: none !important; }
+  .solid, .ring, .stack { transform: none !important; transform-style: flat !important; }
+  .device { cursor: default; }
+  .hint { display: none; }
+
+  /* The object becomes its front face. */
+  .device .back, .device .left, .device .right, .device .top, .device .bottom { display: none; }
+  .front { transform: none !important; border-radius: 42px; }
+  .shadow { display: none; }
+
+  /* The ring becomes a plain scrollable row of screens. */
+  .scene-ring { height: auto; }
+  .ring { position: static; display: flex; gap: 16px; overflow-x: auto; padding-inline: var(--gut); scroll-snap-type: x mandatory; }
+  .ring .card { position: static; margin: 0; flex: none; transform: none !important; opacity: 1 !important; scroll-snap-align: center; }
+
+  /* The stack becomes three stacked panels rather than three depths. */
+  .scene-stack { height: auto; display: block; }
+  .stack { width: auto; height: auto; display: grid; gap: 12px; }
+  .plane { position: static; width: auto; height: auto; margin: 0; transform: none !important; opacity: 1 !important; min-height: 132px; }
+}
