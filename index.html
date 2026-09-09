@@ -27,7 +27,7 @@
 
 <link rel="icon" href="assets/img/icon.png" type="image/png">
 <link rel="apple-touch-icon" href="assets/img/icon.png">
-<link rel="preload" as="image" href="assets/img/chat-hero.webp">
+<link rel="preload" as="image" href="assets/img/chat.webp">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -77,7 +77,7 @@
 
     <div class="hero-shot reveal">
       <div class="clip phone phone-hero" data-clip="hero">
-        <img src="assets/img/chat-hero.webp" width="640" height="1391" alt="Sunday private AI for iPhone">
+        <img src="assets/img/chat.webp" width="640" height="1391" alt="Sunday private AI for iPhone">
       </div>
       <div class="phone-glow" aria-hidden="true"></div>
     </div>
@@ -133,7 +133,6 @@
   <div class="stage">
     <div class="phone lens"><img src="assets/img/see.webp" alt="Sunday describing a cross-hatched drawing."></div>
     <div class="caption" data-cap><p class="verb">See</p><p>Show it a photo. It tells you what's actually in there.</p></div>
-    <div class="blackout" data-fade style="opacity:0"></div>
   </div>
 </section>
 
@@ -145,20 +144,32 @@
       <div class="phone"><img src="assets/img/hear.webp" alt="Sunday summarising a song from audio."></div>
       <div class="caption" data-cap><p class="verb">Hear</p><p>Play it a recording and ask what it means.</p></div>
     </div>
-    <div class="blackout" data-fade style="opacity:0"></div>
   </div>
 </section>
 
 <!-- 4 · Watch -->
 <section class="step" id="watch">
   <div class="stage">
+    <!-- A projector advances frames; it does not pan across them. The strip
+         runs long enough to ratchet through eight of them under a fixed
+         playhead before the sampled frame locks in. The ones before it are
+         frames on their way past, which is why they are dim and why it
+         does not matter that they repeat. -->
     <div class="strip">
-      <div class="phone"><img src="assets/img/see.webp" alt=""></div>
+      <div class="phone"><img src="assets/img/see.webp" alt="" loading="lazy"></div>
+      <div class="phone"><img src="assets/img/hear.webp" alt="" loading="lazy"></div>
+      <div class="phone"><img src="assets/img/read.webp" alt="" loading="lazy"></div>
+      <div class="phone"><img src="assets/img/think.webp" alt="" loading="lazy"></div>
+      <div class="phone"><img src="assets/img/chat.webp" alt="" loading="lazy"></div>
+      <div class="phone"><img src="assets/img/see.webp" alt="" loading="lazy"></div>
+      <div class="phone"><img src="assets/img/hear.webp" alt="" loading="lazy"></div>
+      <div class="phone"><img src="assets/img/read.webp" alt="" loading="lazy"></div>
+      <div class="phone"><img src="assets/img/think.webp" alt="" loading="lazy"></div>
+      <div class="phone"><img src="assets/img/chat.webp" alt="" loading="lazy"></div>
       <div class="phone is-hero"><img src="assets/img/watch.webp" alt="Sunday working through a video frame by frame — watching 0:01, frame 2 of 8."></div>
-      <div class="phone"><img src="assets/img/read.webp" alt=""></div>
     </div>
+    <div class="playhead" aria-hidden="true"><i></i><i></i></div>
     <div class="caption" data-cap><p class="verb">Watch</p><p>Video, sampled frame by frame, then summarised.</p></div>
-    <div class="blackout" data-fade style="opacity:0"></div>
   </div>
 </section>
 
@@ -170,7 +181,6 @@
       <div class="rule"></div>
     </div>
     <div class="caption" data-cap><p class="verb">Read</p><p>Hand it a PDF and ask what you need to do.</p></div>
-    <div class="blackout" data-fade style="opacity:0"></div>
   </div>
 </section>
 
@@ -180,7 +190,6 @@
     <p class="big scan"><span class="kicker">Looked it up</span>Live results, only when you say so.</p>
     <div class="halo"></div>
     <div class="caption" data-cap><p class="verb">Search</p></div>
-    <div class="blackout" data-fade style="opacity:0"></div>
   </div>
 </section>
 
@@ -193,7 +202,6 @@
     <div class="reticle" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
     <p class="big fix"><span class="kicker">Right here</span>Weather and time for wherever you are.</p>
     <div class="caption" data-cap><p class="verb">Locate</p></div>
-    <div class="blackout" data-fade style="opacity:0"></div>
   </div>
 </section>
 
@@ -205,20 +213,20 @@
       <p class="readout"><span id="calcNum">0000</span><span class="unit">m</span></p>
     </div>
     <div class="caption" data-cap><p class="verb">Calculate</p></div>
-    <div class="blackout" data-fade style="opacity:0"></div>
   </div>
 </section>
 
 <!-- 9 · Remember -->
 <section class="step" id="remember">
   <div class="stage">
+    <!-- One screen, repeated five hundred deep and run past you over the
+         step. Only the near copy is here: main.js builds a pool of elements
+         and recycles them, so the markup carries neither the count nor the
+         duplication. This one is what no-JS and reduced-motion show. -->
     <div class="deck">
-      <div class="phone"><img src="assets/img/see.webp" alt=""></div>
-      <div class="phone"><img src="assets/img/hear.webp" alt=""></div>
-      <div class="phone"><img src="assets/img/read.webp" alt=""></div>
+      <div class="phone"><img src="assets/img/read.webp" alt="A conversation Sunday is still holding in context."></div>
     </div>
     <div class="caption" data-cap><p class="verb">Remember</p><p>Holds context through long conversations.</p></div>
-    <div class="blackout" data-fade style="opacity:0"></div>
   </div>
 </section>
 
@@ -228,7 +236,6 @@
     <div class="phone fold"><img src="assets/img/think.webp" alt="Thinking Mode showing visible reasoning."></div>
     <div class="seamline"></div>
     <div class="caption" data-cap><p class="verb">Think</p><p>Watch it reason through the problem, step by step.</p></div>
-    <div class="blackout" data-fade style="opacity:0"></div>
   </div>
 </section>
 

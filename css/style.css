@@ -735,7 +735,7 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
    .phone, and its rules must keep winning outside this section.
    ============================================================ */
 
-#walk { border-top: 1px solid var(--line); }
+#walk { border-top: 1px solid var(--line); background: #000; }
 
 .walk-lead {
   padding-top: clamp(72px, 15vw, 132px);
@@ -764,6 +764,11 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
    a second of hold, which is no time to read anything. Every step's
    offsets are measured individually, so one being taller costs nothing. */
 #walk #know.step { height: 340vh; }
+
+/* Five hundred copies go past in this one, and at a rate that reads as
+   speed rather than as a list. That needs road: on the standard runway the
+   whole column was gone in a flick. */
+#walk #remember.step { height: 620vh; }
 #walk .step:last-of-type { margin-bottom: 0; }
 
 /* Tall runway, sticky viewport: progress through the runway drives every
@@ -777,7 +782,10 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   display: grid;
   place-items: center;
   place-content: center;
-  background-color: #000;
+  /* Deliberately not black. Two stages share the screen for the whole
+     trip between them, so a plate on each one would hide the other; the
+     black behind them is the page. */
+  background-color: transparent;
   /* Nothing is reserved at the top any more — the header steps aside for
      the walkthrough, so the frames get that band back. The bottom still
      holds a clear band for the caption, wide enough that the text sits
@@ -799,6 +807,7 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 20;
+  will-change: transform, opacity;
 }
 
 /* Sits with its description at the foot of the step. Pinning it in the
@@ -809,8 +818,6 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   text-transform: uppercase; color: var(--fg-3);
   margin-bottom: 7px;
 }
-
-#walk .blackout { position: absolute; inset: 0; background: #000; pointer-events: none; z-index: 7; }
 
 #walk .phone {
   position: relative;
@@ -951,13 +958,53 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   transform: scale(var(--rs,0)); opacity: var(--ro,0); will-change: transform, opacity;
 }
 
-/* 4 · Watch — frames flick past, one settles */
+/* 4 · Watch — a projector ratcheting frames past a fixed playhead.
+   Every card carries its own opacity and scale rather than the strip
+   carrying one for all of them: what makes this read as sampling and not
+   as a pan is that each frame brightens as it reaches the playhead and
+   falls back as it leaves. */
+/* One frame width for the strip and the playhead both, so the marks cannot
+   drift off the thing they are measuring. Smaller than a walkthrough phone
+   on purpose: every notch throws the strip exactly this far plus the gap,
+   and at full size that was a 322px lurch eight times over. It also puts
+   more of the film on screen, which is the point of a filmstrip. */
+#walk #watch .stage { --frame: min(56vw, 212px); }
+
 #walk #watch .strip {
   display: flex; gap: 14px; align-items: center;
   transform: translateX(var(--sx,0px)); will-change: transform;
 }
-#walk #watch .strip .phone { flex: none; opacity: var(--so,.35); }
-#walk #watch .strip .phone.is-hero { opacity: 1; }
+#walk #watch .strip .phone {
+  flex: none;
+  width: var(--frame);
+  opacity: var(--co,.14);
+  transform: scale(var(--cs,.9));
+  will-change: transform, opacity;
+}
+
+/* Two ticks marking where a frame is read. Sized off the card so it
+   tracks the frame it is measuring, and centred on the content box the
+   way the reticle is — the stage reserves a band for the caption, so
+   50% of the padding box is not where anything actually sits. */
+#walk #watch .playhead {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--pad-t) + (100% - var(--pad-t) - var(--pad-b)) / 2);
+  translate: -50% -50%;
+  width: var(--frame);
+  aspect-ratio: 640 / 1391;
+  pointer-events: none;
+  opacity: var(--phO, 0);
+  z-index: 6;
+}
+#walk #watch .playhead i {
+  position: absolute; left: 50%; translate: -50% 0;
+  width: 1px; height: 16px;
+  background: rgba(255, 255, 255, .6);
+  box-shadow: 0 0 6px rgba(255, 255, 255, .45);
+}
+#walk #watch .playhead i:first-child { bottom: 100%; margin-bottom: 12px; }
+#walk #watch .playhead i:last-child  { top: 100%;    margin-top: 12px; }
 
 /* 5 · Read — lines reveal down the page */
 #walk #read .sheet { position: relative; }
@@ -974,9 +1021,17 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   -webkit-mask-image: radial-gradient(circle var(--lens,0px) at var(--lx,50%) 50%, #000 98%, transparent 100%);
   mask-image: radial-gradient(circle var(--lens,0px) at var(--lx,50%) 50%, #000 98%, transparent 100%);
 }
+/* Left and top come from main.js in pixels, measured off the line the mask
+   is actually cutting into. They cannot be percentages here: the mask's
+   `--lx` is a percentage of .scan, which is a shrink-to-fit grid item, and
+   these would be percentages of the stage — a different box, and a
+   different origin, so the ring sat 128px to the side of the hole it was
+   supposed to be drawing around. The vertical had the same fault twice
+   over, since the stage reserves a caption band at the bottom and its
+   middle is not where the copy is centred. */
 #walk #search .halo {
   position: absolute; width: calc(var(--lens,0px) * 2); height: calc(var(--lens,0px) * 2);
-  left: var(--lx,50%); top: 50%; translate: -50% -50%;
+  translate: -50% -50%;
   border: 1px solid rgba(255,255,255,.35); border-radius: 50%;
   opacity: var(--haloO,0); pointer-events: none;
 }
@@ -1022,40 +1077,97 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 }
 #walk #calc .unit { font-size: .3em; color: var(--fg-3); letter-spacing: .04em; margin-left: .18em; }
 
-/* 9 · Remember — earlier screens recede behind the current one.
+/* 9 · Remember — an endless column of the one screen, travelled down.
 
-   The front card is the last child, so it paints over the other two. That
-   means the two behind it have to end up somewhere it isn't, or the step
-   shows a single still picture — which is what it did: they scaled about
-   their own centres, so they shrank inward and finished wholly inside the
-   front card's rectangle, invisible the entire way.
+   The step opens on a single conversation and pulls back to find the same
+   screen repeated behind it a hundred and fifty deep, running away to a
+   vanishing point. Scrolling drives the whole column past you — copies
+   sliding down and out by the bottom of the frame while new ones surface
+   at the vanishing point — and the last one clears just as the step ends,
+   which is what hands over to the next.
 
-   Scaling from the top edge instead makes the geometry answerable. With
-   transform-origin at 50% 0%, a scale leaves the top where it is and a
-   translateY moves it by exactly that much, so each card's peek above the
-   one in front is just the difference between their offsets. The deck
-   shifts down as it spreads to keep the fan on screen. */
+   Real perspective rather than a flat scale, because the point is that
+   they are further away — a scale alone reads as smaller copies sitting
+   in front. Offsets are percentages of the card's own height, so the
+   column holds its proportions at any viewport.
+
+   The vanishing point is the top edge, not the middle, and that is what
+   makes the column legible.
+
+   A copy going back shrinks by the perspective projection, and that
+   projection pivots about `perspective-origin` — not about anything set
+   on the card, since a pure translate has no origin to scale about.
+   Centred, it drags each top edge DOWN by half the height the card loses,
+   which cancels most of the lift meant to clear it: an early cut of this
+   stepped three tops by 36px and then 15px, and chasing it with
+   transform-origin put the ones behind BELOW the front card entirely.
+   Pinned to the top edge, a copy's peek above the one in front is just
+   its own offset times its depth scale — so the peeks close up as the
+   copies recede and the column converges on a vanishing point instead of
+   marching off the top of the screen. */
+/* Deliberately NOT `transform-style: preserve-3d`. Perspective scales the
+   children either way; preserve-3d only buys depth sorting, and nesting a
+   3D context inside the stage — which is itself perspective-transformed,
+   promoted by will-change and clipped by overflow — composited to a blank
+   layer once the column grew past a few copies: correct layout, correct
+   hit-testing, nothing on screen. The copies never intersect, so the
+   sorting is a painting order, and main.js sets it as z-index per copy. */
+/* z-index, not a transform, for the stacking context: the copies carry
+   depth-derived z-indexes in the thousands and would otherwise paint over
+   the caption. Nudged down the frame so the column has room to converge
+   above the near copy rather than running off the top. */
 #walk #remember .deck {
-  position: relative; width: min(80vw,308px); aspect-ratio: 640/1391;
-  transform: translateY(calc(var(--spread,0) * 6.6%));
+  position: relative; z-index: 0;
+  width: min(80vw,308px); aspect-ratio: 640/1391;
+  perspective: 1100px;
+  /* The viewpoint: looking down the column from the top, so it runs away
+     upward and the copies come toward you and leave by the bottom. Must
+     agree with TUNNEL_DIR in main.js — the two are one decision. */
+  perspective-origin: 50% 0%;
+  transform: translateY(6%);
 }
 #walk #remember .deck .phone {
-  position: absolute; inset: 0; width: 100%;
-  transform-origin: 50% 0%;
-  will-change: transform, opacity;
+  /* Height explicitly, not left to `inset`: .phone carries its own
+     aspect-ratio, and with height auto that wins and the card sizes itself
+     rather than filling the deck. */
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  aspect-ratio: auto;
+  transform: translate3d(0, var(--ty,0%), var(--tz,0px));
+  opacity: var(--op,1);
+  /* Two dozen of these composite at once and the ground behind them is
+     black, so the drop shadow costs a blur per copy and shows nothing. */
+  box-shadow: none;
 }
-/* Percentages of the card's own height, so the fan holds its proportions
-   at any viewport rather than being tuned for one phone width. */
-#walk #remember .deck .phone:nth-child(1) {   /* furthest back */
-  transform: translateY(calc(var(--spread,0) * -7.8%)) scale(calc(1 - var(--spread,0) * .32));
-  opacity: calc(1 - var(--spread,0) * .66);
+
+/* Remember's label has five hundred screens travelling through where it
+   sits, so unlike the other ten it cannot just be type on black. */
+
+/* Desktop: out of the column's way entirely, up in the corner. */
+@media (min-width: 769px) {
+  #walk #remember .caption {
+    top: calc(var(--pad-t) + 26px);
+    left: var(--gut);
+    right: auto;
+    bottom: auto;
+    max-width: 34ch;
+    text-align: left;
+  }
 }
-#walk #remember .deck .phone:nth-child(2) {
-  transform: translateY(calc(var(--spread,0) * -0.9%)) scale(calc(1 - var(--spread,0) * .22));
-  opacity: calc(1 - var(--spread,0) * .42);
-}
-#walk #remember .deck .phone:nth-child(3) {   /* the current screen */
-  transform: translateY(calc(var(--spread,0) * 4.2%)) scale(calc(1 - var(--spread,0) * .12));
+
+/* Mobile: stays where it is, over the column, so it needs a ground. Soft
+   edged and blurred so it reads as the dark falling away behind the type
+   rather than as a panel laid on top of the design. */
+@media (max-width: 768px) {
+  #walk #remember .caption::before {
+    content: "";
+    position: absolute;
+    inset: -20px -14px -24px;
+    background: radial-gradient(ellipse at 50% 50%,
+                rgba(0, 0, 0, .95) 40%, rgba(0, 0, 0, .8) 68%, transparent 100%);
+    filter: blur(7px);
+    z-index: -1;
+    pointer-events: none;
+  }
 }
 
 /* 10 · Think — unfolds outward from a vertical seam */
@@ -1111,6 +1223,9 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   #walk #know.step {
     height: 600vh;
   }
+  #walk #remember.step {
+    height: 1150vh;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1128,7 +1243,7 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   #walk .stage { position: static; height: auto; padding-block: 60px; gap: 24px; }
   #walk .stage > * { transform: none !important; clip-path: none !important; opacity: 1 !important;
                      -webkit-mask-image: none !important; mask-image: none !important; }
-  #walk .blackout, #walk .ring, #walk .reticle,
+  #walk .ring, #walk .reticle,
   #walk .halo, #walk .seamline, #walk .rule { display: none !important; }
   /* A grandchild of the stage, so the blanket reset above does not reach
      it: lay the line flat and light it. */
@@ -1138,5 +1253,10 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   #walk .verb, #walk .caption { position: static; }
   #walk #watch .strip { flex-direction: column; }
   #walk #remember .deck { height: auto; aspect-ratio: auto; }
-  #walk #remember .deck .phone { position: static; margin-inline: auto; }
+  /* Give the card its own box back: the tunnel sizes it to the deck, and
+     with the deck's height auto here there would be nothing to fill. */
+  #walk #remember .deck .phone {
+    position: static; margin-inline: auto;
+    height: auto; aspect-ratio: 640 / 1391;
+  }
 }
