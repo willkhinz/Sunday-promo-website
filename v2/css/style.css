@@ -73,6 +73,27 @@
      these are short and the springs are gentle rather than bouncy. */
   --ease: cubic-bezier(.32, .72, 0, 1);
   --ease-soft: cubic-bezier(.4, 0, .2, 1);
+
+  /* ── the one light ──────────────────────────────────────────
+     A single key, declared once, that every surface on this page answers
+     to. Unit vector in screen space with +y pointing DOWN: 59 degrees above
+     the horizon, 36 degrees camera-left — a three-quarter key. main.js
+     reads these three numbers once at init and never per frame.
+
+     Apple's own icon system renders every icon under one simulated light
+     with speculars that track tilt; one light consistently applied is the
+     platform's material vocabulary. Before this, v2 implied four different
+     lights: a rail highlight fixed dead-centre whichever way the phone
+     faced, a contact shadow that slid sideways as it turned (a lamp
+     orbiting with the object), an overhead box-shadow on the ring, and far
+     cards that faded toward WHITE — a surface turned away from a light goes
+     darker, never lighter. */
+  --key-x: -0.30;
+  --key-y: -0.86;
+  --key-z:  0.41;
+
+  /* Shadows on white paper are cool, not black. */
+  --shadow-ink: 60 60 67;
 }
 
 * { box-sizing: border-box; }
@@ -254,7 +275,11 @@ h2 {
 .scene-hero {
   position: relative;
   display: grid; place-items: center;
-  min-height: 620px;
+  /* Room for the object (608px), the floor its shadow lands on, and the
+     controls beneath — the controls must not sit on top of the thing they
+     control. */
+  min-height: 748px;
+  padding-bottom: 84px;
   touch-action: pan-y;                       /* let the page still scroll */
 }
 
@@ -282,29 +307,146 @@ h2 {
 .top    { transform: rotateX(90deg)  translateZ(calc(var(--h) / 2)); }
 .bottom { transform: rotateX(-90deg) translateZ(calc(var(--h) / 2)); }
 
-/* The rails read as machined aluminium, so the object has a material. */
+/* Machined aluminium: a dark base, with the highlight carried by a separate
+   .spec band that moves. The old version baked the highlight into a static
+   gradient sitting dead-centre no matter which way the phone pointed — a
+   chamfer that never catches the light is the single loudest tell that an
+   object is a picture of an object. */
 .left, .right, .top, .bottom {
-  background: linear-gradient(90deg, #8e8e93, #d1d1d6 35%, #f2f2f7 50%, #c7c7cc 68%, #8e8e93);
+  background: linear-gradient(90deg, #6e6e73, #8e8e93 38%, #7c7c80 62%, #5a5a5e);
 }
-.top, .bottom { background: linear-gradient(0deg, #8e8e93, #d1d1d6 35%, #f2f2f7 50%, #c7c7cc 68%, #8e8e93); }
+.top, .bottom { background: linear-gradient(0deg, #6e6e73, #8e8e93 38%, #7c7c80 62%, #5a5a5e); }
+
+.spec {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  opacity: 0;                   /* main.js writes opacity/transform inline */
+  will-change: opacity, transform;
+}
+/* Across a left/right rail the chamfer sweeps horizontally... */
+.fc-lr .spec {
+  background: linear-gradient(90deg, rgb(255 255 255 / 0), rgb(255 255 255 / .95) 50%, rgb(255 255 255 / 0));
+  transform: translateX(var(--spec-p, 0%));
+}
+/* ...and vertically across a top/bottom rail. */
+.fc-tb .spec {
+  background: linear-gradient(0deg, rgb(255 255 255 / 0), rgb(255 255 255 / .95) 50%, rgb(255 255 255 / 0));
+  transform: translateY(var(--spec-p, 0%));
+}
 
 .front video, .front img { width: 100%; height: 100%; object-fit: cover; }
 
-/* Contact shadow. It tracks the object's tilt in main.js. */
-.shadow {
-  position: absolute; z-index: -1;
-  width: 300px; height: 44px; border-radius: 50%;
-  background: radial-gradient(ellipse, rgb(0 0 0 / .22), transparent 70%);
-  filter: blur(14px);
+/* Glass. Both children sit above the video, both are composited-only, and
+   both are driven by opacity/transform alone — never by a filter radius or
+   a background, which would repaint. */
+.front .gloss, .front .rim {
+  position: absolute; inset: 0;
   pointer-events: none;
+  border-radius: inherit;
+}
+/* A window's worth of reflection, smeared by the oleophobic coating. It
+   drifts across the glass as the object turns. */
+.front .gloss {
+  background: linear-gradient(101deg,
+              rgb(255 255 255 / 0) 34%,
+              rgb(255 253 247 / .30) 46%,
+              rgb(255 255 255 / .10) 53%,
+              rgb(255 255 255 / 0) 66%);
+  opacity: .18;                 /* main.js writes opacity/transform inline */
+  will-change: transform, opacity;
+}
+/* Schlick: R0 = ((1.52-1)/(1.52+1))^2 = 0.0426 for glass, so reflectance is
+   0.043 face-on and 0.34 at 78 degrees. The flare is confined to grazing
+   incidence, which is exactly the moment the front face used to just go
+   thin and dark. */
+.front .rim {
+  background: linear-gradient(90deg,
+              rgb(255 255 255 / .9), rgb(255 255 255 / 0) 18%,
+              rgb(255 255 255 / 0) 82%, rgb(255 255 255 / .9));
+  opacity: .04;                 /* main.js writes opacity inline */
+  will-change: opacity;
 }
 
+/* Two parts, because a gap opening under an object does two things at once:
+   the core shrinks and lightens fast, the penumbra widens and holds. One
+   blurred ellipse can only do one of them, which is why the old single
+   shadow read as a smudge that followed the phone around.
+
+   Both are ink-coloured rather than black — a shadow on white paper is
+   cool. Both blur radii are static, so nothing re-rasterises per frame;
+   only transform and opacity move. */
+.shadow {
+  position: absolute; z-index: -1;
+  top: 50%; left: 50%;
+  width: 320px; height: 320px;
+  margin: -160px 0 0 -160px;
+  /* The object's half-height plus a little: the shadow belongs at its feet,
+     not at its middle. */
+  transform: translateY(316px);
+  pointer-events: none;
+}
+.shadow i { position: absolute; left: 50%; top: 50%; border-radius: 50%; }
+.sh-core {
+  width: 280px; height: 30px; margin: -15px 0 0 -140px;
+  background: rgb(var(--shadow-ink) / .40);
+  filter: blur(10px);
+  opacity: .4;
+  will-change: transform, opacity;
+}
+.sh-penumbra {
+  width: 340px; height: 74px; margin: -37px 0 0 -170px;
+  background: rgb(var(--shadow-ink) / .20);
+  filter: blur(30px);
+  opacity: .3;
+  will-change: transform, opacity;
+}
+
+/* In the flex column with the control now, not absolutely positioned over
+   it. */
 .hint {
-  position: absolute; bottom: 8px; left: 50%; translate: -50% 0;
   font-size: 13px; line-height: 18px; color: var(--label-2);
+  white-space: nowrap;
   transition: opacity .4s var(--ease-soft);
 }
 .hint.is-gone { opacity: 0; }
+
+/* Media controls. Nothing on this page plays by itself: WCAG 2.2.2 (Level A)
+   and the HIG both require a way to start and stop anything that moves on
+   its own, and three looping clips with no control was the one place this
+   build was plainly non-compliant. */
+.scene-controls {
+  position: absolute; bottom: 0; left: 50%; translate: -50% 0;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  width: max-content;
+}
+.ctl {
+  display: inline-flex; align-items: center; gap: 8px;
+  min-height: 44px; padding: 10px 18px 10px 14px;   /* 44pt target */
+  border: 0; border-radius: 980px; cursor: pointer;
+  background: rgb(var(--shadow-ink) / .08);
+  color: var(--label);
+  font: inherit; font-size: 15px; line-height: 20px; font-weight: 500;
+  transition: background-color .2s var(--ease-soft);
+}
+.ctl:active { background: rgb(var(--shadow-ink) / .16); }
+@media (hover: hover) { .ctl:hover { background: rgb(var(--shadow-ink) / .14); } }
+.ctl-ico {
+  width: 16px; height: 16px; flex: none;
+  background: currentColor;
+  /* A triangle that becomes two bars — the state is in the shape, not only
+     in the label, and never in colour alone. */
+  clip-path: polygon(14% 4%, 14% 96%, 96% 50%);
+}
+.ctl[aria-pressed="true"] .ctl-ico {
+  clip-path: polygon(10% 6%, 40% 6%, 40% 94%, 10% 94%, 60% 6%, 90% 6%, 90% 94%, 60% 94%);
+}
+.ctl-light {
+  background: rgb(255 255 255 / .22); color: #fff;
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  margin-top: 18px;
+}
+.ctl-light:active { background: rgb(255 255 255 / .34); }
+@media (hover: hover) { .ctl-light:hover { background: rgb(255 255 255 / .3); } }
 
 /* ── the ring ──────────────────────────────────────────────── */
 
@@ -319,6 +461,11 @@ h2 {
   transform-style: preserve-3d;
   will-change: transform;
 }
+/* 232px wide, and the hexagon's apothem is what places them: for a regular
+   hexagon side = circumradius, so six 232px faces at translateZ(201px) —
+   232 * sqrt(3)/2 — meet edge to edge and close into a solid prism. At the
+   old 330px radius there was ~98px of daylight between neighbours and you
+   could see straight through the object. */
 .ring .card {
   position: absolute; left: 50%; top: 50%;
   width: 232px; height: 504px;
@@ -326,8 +473,25 @@ h2 {
   border-radius: 34px; overflow: hidden;
   background: #000;
   border: 1px solid rgb(0 0 0 / .08);
-  box-shadow: 0 24px 60px -24px rgb(0 0 0 / .38);
-  transition: opacity .3s var(--ease-soft);
+  box-shadow: 0 14px 28px -16px rgb(var(--shadow-ink) / .34);
+  backface-visibility: hidden;
+  /* Deliberately NO transition on opacity: main.js assigns the shade's
+     opacity every frame, and a transition here was being re-targeted 60
+     times a second — six transitions permanently restarting, never
+     completing, fighting the write that started them. */
+}
+/* Depth as light, not as transparency. A screen turned away from the key
+   goes dark; it does not dissolve into the page. The old fade drove far
+   cards toward white (a black card at opacity .22 on white composites to
+   rgb(199 199 199) — LIGHTER than a facing one), which is backwards and
+   also destroyed their silhouette against the background. */
+.ring .card .shade {
+  position: absolute; inset: 0;
+  background: #0b0b0f;
+  border-radius: inherit;
+  opacity: 0;                   /* main.js writes opacity inline */
+  pointer-events: none;
+  will-change: opacity;
 }
 .ring .card img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
 
@@ -378,9 +542,17 @@ h2 {
 }
 .plane em { font-style: normal; font-weight: 400; font-size: 13px; color: var(--label-2); }
 .plane img { width: 92px; border-radius: 12px; margin-top: 8px; }
-.p1 { background: rgb(255 255 255 / .92); border: 1px solid var(--separator); box-shadow: 0 22px 50px -26px rgb(0 0 0 / .5); }
-.p2 { background: rgb(0 136 255 / .10); border: 1px solid rgb(0 136 255 / .35); color: var(--tint); }
-.p3 { background: rgb(142 142 147 / .16); border: 1px solid rgb(142 142 147 / .5); }
+/* Each sheet casts, so you read three sheets at different distances rather
+   than three cards getting more transparent. The cast is a box-shadow on
+   the plane itself — deliberately NOT a blurred overlay laid over the plane
+   behind it, which would have put the 13px .plane em label at 3.46:1
+   against a 4.5:1 requirement. */
+.p1 { background: rgb(255 255 255 / .96); border: 1px solid var(--separator);
+      box-shadow: 0 22px 50px -26px rgb(var(--shadow-ink) / .55); }
+.p2 { background: rgb(30 110 244 / .10); border: 1px solid rgb(30 110 244 / .38); color: var(--tint);
+      box-shadow: 0 18px 40px -22px rgb(var(--shadow-ink) / .5); }
+.p3 { background: rgb(142 142 147 / .18); border: 1px solid rgb(142 142 147 / .55);
+      box-shadow: 0 14px 32px -20px rgb(var(--shadow-ink) / .45); }
 
 /* ── grouped lists (inset style) ───────────────────────────── */
 
@@ -483,12 +655,27 @@ h2 {
 /* ============================================================
    Reduce Motion
 
-   The HIG is specific here: reduce automatic and repetitive animation,
-   avoid z-axis depth animation, replace x/y/z transitions with fades,
-   and avoid animating into and out of blurs. This build is almost
-   entirely z-axis, so under this setting the objects stop being
-   objects: the scenes flatten to their front faces and everything
-   arrives by fade.
+   The HIG asks to reduce automatic and repetitive animation, avoid z-axis
+   depth animation, and replace x/y/z transitions with fades. Note what that
+   governs: ANIMATION. A static three-dimensional pose is not animation —
+   nothing moves, nothing transitions, nothing repeats.
+
+   The previous build read the rule as "no 3D" and deleted perspective and
+   every transform outright. That was over-broad, and it cost the design its
+   subject: with `transform-style: flat` the left and right rails collapse to
+   zero width (which is why they then had to be display:none'd), so the
+   object stopped being an object and the light had nothing to land on. The
+   accessibility claim of this page is that the light survives when the
+   motion goes; it could not, because the lit geometry was gone.
+
+   So: the device keeps its pose and its lighting, written once at the
+   resting attitude and never touched again. Zero scheduled work, no rAF, no
+   pointer tracking, no idle drift, no float. It is a photograph of a lit
+   solid rather than a solid being turned.
+
+   The ring and the stack are different: their meaning WAS the motion, so
+   they flatten to a scroll-snap row and a stack of panels, and the ring's
+   controls keep working without the loop.
    ============================================================ */
 
 @media (prefers-reduced-motion: reduce) {
@@ -502,24 +689,38 @@ h2 {
 
   .anim { opacity: 1; transform: none; }
 
-  /* Flatten every scene: no perspective, no depth, no rotation. */
-  .scene { perspective: none !important; }
-  .solid, .ring, .stack { transform: none !important; transform-style: flat !important; }
+  /* The device keeps perspective and keeps its faces. main.js writes the
+     pose, the rail speculars, the glass and the shadow once at init. */
   .device { cursor: default; }
   .hint { display: none; }
 
-  /* The object becomes its front face. */
-  .device .back, .device .left, .device .right, .device .top, .device .bottom { display: none; }
-  .front { transform: none !important; border-radius: 42px; }
-  .shadow { display: none; }
+  /* The ring and stack lose their depth, since theirs was the moving kind. */
+  .scene-ring, .scene-stack { perspective: none; }
+  .ring, .stack { transform: none !important; transform-style: flat !important; }
 
-  /* The ring becomes a plain scrollable row of screens. */
   .scene-ring { height: auto; }
-  .ring { position: static; display: flex; gap: 16px; overflow-x: auto; padding-inline: var(--gut); scroll-snap-type: x mandatory; }
-  .ring .card { position: static; margin: 0; flex: none; transform: none !important; opacity: 1 !important; scroll-snap-align: center; }
+  .ring {
+    position: static; display: flex; gap: 16px;
+    overflow-x: auto; padding-inline: var(--gut);
+    scroll-snap-type: x mandatory;
+  }
+  .ring .card {
+    position: static; margin: 0; flex: none;
+    transform: none !important; scroll-snap-align: center;
+  }
+  /* A static ramp across the row, so it still reads as lit from one side
+     rather than as six identical thumbnails. */
+  .ring .card:nth-child(1) .shade { opacity: 0; }
+  .ring .card:nth-child(2) .shade { opacity: .08; }
+  .ring .card:nth-child(3) .shade { opacity: .16; }
+  .ring .card:nth-child(4) .shade { opacity: .24; }
+  .ring .card:nth-child(5) .shade { opacity: .32; }
+  .ring .card:nth-child(6) .shade { opacity: .40; }
 
-  /* The stack becomes three stacked panels rather than three depths. */
   .scene-stack { height: auto; display: block; }
   .stack { width: auto; height: auto; display: grid; gap: 12px; }
-  .plane { position: static; width: auto; height: auto; margin: 0; transform: none !important; opacity: 1 !important; min-height: 132px; }
+  .plane {
+    position: static; width: auto; height: auto; margin: 0;
+    transform: none !important; opacity: 1 !important; min-height: 132px;
+  }
 }

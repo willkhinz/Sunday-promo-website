@@ -45,25 +45,45 @@
       </div>
     </div>
 
-    <!-- A real object: six faces with genuine thickness, not a picture of a
-         phone. Drag it. -->
+    <!-- A real object: six faces with genuine thickness, lit by the one key
+         light declared in :root. The rails carry a specular band that tracks
+         the turn, the front face is glass with a Fresnel rim, and the shadow
+         is in two parts so a gap opening reads as a gap opening. Drag it. -->
     <div class="scene scene-hero" id="heroScene">
+      <!-- Two layers, moving in opposite directions as the object lifts: a
+           tight core that says it is touching the page, a wide penumbra that
+           says the light is broad. -->
+      <div class="shadow" aria-hidden="true">
+        <i class="sh-penumbra" id="shPenumbra"></i>
+        <i class="sh-core" id="shCore"></i>
+      </div>
+
       <div class="solid device" id="device" role="img"
            aria-label="Sunday answering a question on iPhone, with the network switched off.">
         <div class="fc fc-fb front">
-          <video autoplay muted loop playsinline preload="metadata" poster="../assets/img/chat.webp">
+          <video id="heroVideo" muted loop playsinline preload="metadata" poster="../assets/img/chat.webp">
             <source src="../assets/video/hero-answer.webm" type="video/webm">
             <source src="../assets/video/hero-answer.mp4" type="video/mp4">
           </video>
+          <i class="gloss" id="gloss" aria-hidden="true"></i>
+          <i class="rim" id="rim" aria-hidden="true"></i>
         </div>
         <div class="fc fc-fb back"></div>
-        <div class="fc fc-lr left"></div>
-        <div class="fc fc-lr right"></div>
-        <div class="fc fc-tb top"></div>
-        <div class="fc fc-tb bottom"></div>
+        <div class="fc fc-lr left"><i class="spec" data-rail="left"></i></div>
+        <div class="fc fc-lr right"><i class="spec" data-rail="right"></i></div>
+        <div class="fc fc-tb top"><i class="spec" data-rail="top"></i></div>
+        <div class="fc fc-tb bottom"><i class="spec" data-rail="bottom"></i></div>
       </div>
-      <div class="shadow" id="deviceShadow" aria-hidden="true"></div>
-      <p class="hint" id="dragHint" aria-hidden="true">Drag to turn</p>
+
+      <div class="scene-controls">
+        <!-- WCAG 2.2.2: anything that plays automatically needs a way to
+             stop it. Nothing autoplays; this starts it. -->
+        <button class="ctl" id="heroPlay" type="button" aria-pressed="false">
+          <span class="ctl-ico" aria-hidden="true"></span>
+          <span class="ctl-label">Play the answer</span>
+        </button>
+        <p class="hint" id="dragHint">Drag the phone to turn it</p>
+      </div>
     </div>
   </div>
 
@@ -87,22 +107,22 @@
   <div class="scene scene-ring" id="ringScene">
     <div class="ring" id="ring">
       <div class="card" data-label="See" data-note="Show it a photo. It tells you what's actually in there.">
-        <img src="../assets/img/see.webp" alt="Sunday describing a cross-hatched drawing." loading="lazy">
+        <img src="../assets/img/see.webp" alt="Sunday describing a cross-hatched drawing." loading="lazy"><i class="shade" aria-hidden="true"></i>
       </div>
       <div class="card" data-label="Hear" data-note="Play it a recording and ask what it means.">
-        <img src="../assets/img/hear.webp" alt="Sunday summarising a song from audio." loading="lazy">
+        <img src="../assets/img/hear.webp" alt="Sunday summarising a song from audio." loading="lazy"><i class="shade" aria-hidden="true"></i>
       </div>
       <div class="card" data-label="Watch" data-note="Video, sampled frame by frame, then summarised.">
-        <img src="../assets/img/watch.webp" alt="Sunday working through a video frame by frame." loading="lazy">
+        <img src="../assets/img/watch.webp" alt="Sunday working through a video frame by frame." loading="lazy"><i class="shade" aria-hidden="true"></i>
       </div>
       <div class="card" data-label="Read" data-note="Hand it a PDF and ask what you need to do.">
-        <img src="../assets/img/read.webp" alt="Sunday breaking a PDF into a checklist." loading="lazy">
+        <img src="../assets/img/read.webp" alt="Sunday breaking a PDF into a checklist." loading="lazy"><i class="shade" aria-hidden="true"></i>
       </div>
       <div class="card" data-label="Think" data-note="Watch it reason through the problem, step by step.">
-        <img src="../assets/img/think.webp" alt="Thinking Mode showing visible reasoning." loading="lazy">
+        <img src="../assets/img/think.webp" alt="Thinking Mode showing visible reasoning." loading="lazy"><i class="shade" aria-hidden="true"></i>
       </div>
       <div class="card" data-label="Chat" data-note="Ask it anything. It answers straight away.">
-        <img src="../assets/img/chat.webp" alt="A conversation with Sunday." loading="lazy">
+        <img src="../assets/img/chat.webp" alt="A conversation with Sunday." loading="lazy"><i class="shade" aria-hidden="true"></i>
       </div>
     </div>
   </div>
@@ -110,7 +130,11 @@
   <div class="wrap ring-cap">
     <p class="ring-title" id="ringTitle">See</p>
     <p class="ring-note" id="ringNote">Show it a photo. It tells you what's actually in there.</p>
-    <ol class="dots" id="ringDots" aria-label="Capability"></ol>
+    <!-- Real controls in the real document, not built by the animation loop.
+         They select a capability whether or not the 3D loop is running — under
+         Reduce Motion the loop never starts, and the previous build left these
+         focusable, labelled and completely dead. -->
+    <div class="dots" id="ringDots" role="tablist" aria-label="Capability"></div>
   </div>
 </section>
 
@@ -147,7 +171,7 @@
 <section class="section" id="offline">
   <div class="wrap">
     <div class="film anim" data-anim>
-      <video autoplay muted loop playsinline preload="none" poster="../assets/video/hero-poster.webp">
+      <video id="filmVideo" muted playsinline preload="none" poster="../assets/video/hero-poster.webp">
         <source src="../assets/video/hero.webm" type="video/webm">
         <source src="../assets/video/hero.mp4" type="video/mp4">
       </video>
@@ -155,6 +179,10 @@
         <p class="eyebrow light">Live</p>
         <h2 class="light">No upload. No spinner. It just starts writing.</h2>
         <p class="sub light">In a tunnel, on a plane, or with the radios switched off entirely.</p>
+        <button class="ctl ctl-light" id="filmPlay" type="button" aria-pressed="false">
+          <span class="ctl-ico" aria-hidden="true"></span>
+          <span class="ctl-label">Play</span>
+        </button>
       </div>
     </div>
   </div>
