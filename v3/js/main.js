@@ -458,7 +458,10 @@ function setPaused(next) {
   paused = next;
   dirty = true;
   if (motLabel) motLabel.textContent = paused ? 'Play motion' : 'Pause motion';
-  if (motBtn) motBtn.setAttribute('aria-label', (paused ? 'Play' : 'Pause') + ' animation on this page');
+  if (motBtn) {
+    motBtn.setAttribute('aria-label', (paused ? 'Play' : 'Pause') + ' animation on this page');
+    motBtn.classList.toggle('is-paused', paused);
+  }
   if (paused && heroVid) heroVid.pause();
   else tryPlayHero();
 }

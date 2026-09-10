@@ -20,8 +20,9 @@
   --ink-3:rgba(255,255,255,.52);        /*  5.6:1 on black  */
   --line:rgba(255,255,255,.12);
   --line-2:rgba(255,255,255,.2);
-  --warm:#ff9a3c;                        /*  9.9:1 on black  */
-  --cool:#5fb0ff;
+  /* Monochrome. Hierarchy is carried entirely by value, weight and size —
+     there is no hue anywhere in the chrome, and none in either shader. */
+  --hi:#fff;
   --pane:rgba(255,255,255,.05);
   --gut:clamp(20px,5vw,64px);
   --max:1180px;
@@ -55,7 +56,7 @@ ul,ol{margin:0;padding:0;list-style:none}
 }
 .skip:focus-visible{top:16px}
 
-:focus-visible{outline:2px solid var(--warm);outline-offset:3px;border-radius:6px}
+:focus-visible{outline:2px solid var(--hi);outline-offset:3px;border-radius:6px}
 
 /* ── the world ─────────────────────────────────────────────────────────── */
 
@@ -111,8 +112,12 @@ ul,ol{margin:0;padding:0;list-style:none}
   color:var(--ink-2);font:inherit;font-size:14px;font-weight:550;cursor:pointer;
   transition:color .18s var(--ease),border-color .18s var(--ease)}
 .ghost:hover{color:var(--ink);border-color:var(--line-2)}
-.ghost-dot{width:7px;height:7px;border-radius:50%;background:var(--warm);flex:none}
-.ghost[aria-pressed="true"] .ghost-dot{background:var(--ink-3)}
+.ghost-dot{width:7px;height:7px;border-radius:50%;background:var(--hi);flex:none;
+  transition:background-color .18s var(--ease)}
+/* Keyed on a class main.js actually sets. It used to key on aria-pressed,
+   which was removed from the button — a selector matching nothing, quietly
+   promising a state indicator that could never light up. */
+.ghost.is-paused .ghost-dot{background:var(--ink-3)}
 
 /* ── layout ────────────────────────────────────────────────────────────── */
 
@@ -132,15 +137,21 @@ html.motion .head{margin-bottom:clamp(20px,2.5vw,32px)}
 
 /* ── type ──────────────────────────────────────────────────────────────── */
 
+/* The eyebrow was carrying its hierarchy in orange. With no hue to spend it
+   goes the other way: dimmer than the heading it introduces, and marked out
+   by case and tracking instead. */
 .kicker{font-size:13px;font-weight:650;letter-spacing:.15em;text-transform:uppercase;
-  color:var(--warm);margin-bottom:20px}
+  color:var(--ink-2);margin-bottom:20px}
 
 h1,.big{
   font-size:clamp(2.7rem,9vw,8rem);line-height:.92;font-weight:700;letter-spacing:-.045em;
   margin:0 0 26px;text-wrap:balance;
 }
+/* A sheen across the emphasised line rather than a colour: greyscale, and
+   its darkest stop still clears 6:1 on black at every size this ever
+   renders at. */
 h1 em,.big em{display:block;font-style:normal;
-  background:linear-gradient(96deg,var(--warm),#fff 46%,var(--cool));
+  background:linear-gradient(96deg,#8f8f8f,#fff 44%,#adadad);
   -webkit-background-clip:text;background-clip:text;color:transparent}
 
 /* .big is a shade smaller than h1 on purpose: in the copy chapters it shares
@@ -227,7 +238,7 @@ html:not(.motion) .scroll-cue{display:none}
   -webkit-overflow-scrolling:touch;scrollbar-width:thin}
 .scr{flex:0 0 auto;width:min(62vw,236px);scroll-snap-align:center;margin:0}
 .scr img{width:100%;height:auto;aspect-ratio:640/1391;object-fit:cover;
-  border-radius:26px;border:1px solid var(--line-2);background:#0b0b0d}
+  border-radius:26px;border:1px solid var(--line-2);background:#0b0b0b}
 .scr figcaption{display:block;padding:16px 2px 0}
 .scr figcaption b{display:block;font-size:19px;font-weight:650;letter-spacing:-.02em}
 .scr figcaption span{display:block;margin-top:5px;font-size:14px;line-height:1.42;color:var(--ink-2)}
@@ -295,10 +306,11 @@ html.motion .lyr{
 }
 html.motion .lyr::before{
   content:"";position:absolute;left:0;top:16px;bottom:16px;width:3px;
-  border-radius:0 3px 3px 0;background:var(--warm);
+  border-radius:0 3px 3px 0;background:#fff;
 }
-html.motion .lyr.l2::before{background:var(--cool)}
-html.motion .lyr.l3::before{background:rgba(255,255,255,.55)}
+/* Three steps down the grey ramp, so the plates stay tellable apart. */
+html.motion .lyr.l2::before{background:rgba(255,255,255,.62)}
+html.motion .lyr.l3::before{background:rgba(255,255,255,.34)}
 html.motion .lyr img{position:absolute;right:18px;top:50%;margin:0;
   transform:translateY(-50%);width:62px;border-color:var(--line-2)}
 
@@ -312,7 +324,7 @@ html.motion .lyr img{position:absolute;right:18px;top:50%;margin:0;
 /* ── offline film ──────────────────────────────────────────────────────── */
 
 .film{position:relative;border-radius:clamp(22px,3vw,34px);overflow:hidden;
-  border:1px solid var(--line-2);background:#08080a;isolation:isolate}
+  border:1px solid var(--line-2);background:#090909;isolation:isolate}
 .film video{width:100%;height:clamp(360px,62svh,620px);object-fit:cover;opacity:.5}
 .film-copy{position:absolute;inset:auto 0 0;padding:clamp(24px,4vw,52px);
   background:linear-gradient(180deg,transparent,rgba(0,0,0,.86) 62%)}
@@ -378,7 +390,7 @@ html.motion .lyr img{position:absolute;right:18px;top:50%;margin:0;
         --line:rgba(255,255,255,.34);--line-2:rgba(255,255,255,.5)}
   .grain{display:none}
   .film video{opacity:.34}
-  h1 em,.big em{background:none;-webkit-text-fill-color:currentColor;color:var(--warm)}
+  h1 em,.big em{background:none;-webkit-text-fill-color:currentColor;color:var(--hi)}
 }
 
 /* ── reduce motion ─────────────────────────────────────────────────────── */

@@ -107,10 +107,12 @@ var PT_VS = [
       is what gives the field a sense of near and far rather than one uniform
       grade of speckle. */
 '  gl_PointSize = uSize*uDpr*(13.0/dist)*(0.30+aSeed.y*aSeed.y*1.90);',
-'  vec3 warm = vec3(1.00,0.60,0.24);',
-'  vec3 cool = vec3(0.36,0.69,1.00);',
-'  vCol = mix(cool, warm, clamp(aSeed.x + uTint, 0.0, 1.0));',
-'  vCol = mix(vCol, vec3(1.0), clamp(uBurst*1.35,0.0,1.0)*0.50);',
+   /* Monochrome. uTint no longer swings between two hues — it slides the
+      whole cloud up and down the grey ramp, so a station can still read as
+      "brighter" or "cooler" without a colour ever entering the page. */
+'  float g = 0.58 + 0.42*clamp(aSeed.x + uTint, 0.0, 1.0);',
+'  vCol = vec3(g);',
+'  vCol = mix(vCol, vec3(1.0), clamp(uBurst*1.35,0.0,1.0)*0.55);',
    /* Exposure. Each sprite is deliberately dim: the image is built out of
       thousands of them overlapping, so a peak near 1.0 per sprite would clip
       to white everywhere they pile up. Far and near ramps double as a cheap
@@ -162,19 +164,20 @@ var MS_FS = [
 '  float ndl  = max(dot(N,L), 0.0);',
 '  float ndh  = max(dot(N,H), 0.0);',
 '  float fres = pow(1.0 - max(dot(N,V), 0.0), 5.0);',
-   /* Two-tone environment: the rails pick up a cool sky above and a near-black
-      floor below, which is what actually makes anodised metal read as metal. */
-'  vec3 env = mix(vec3(0.020,0.024,0.035), vec3(0.30,0.36,0.48), N.y*0.5+0.5);',
+   /* Two-tone environment, in grey: the rails pick up a bright sky above and
+      a near-black floor below, which is what actually makes anodised metal
+      read as metal — the gradient does the work, not the hue. */
+'  vec3 env = mix(vec3(0.022), vec3(0.34), N.y*0.5+0.5);',
 '  vec3 col;',
 '  if (N.z > 0.5) {',
 '    vec3 tex = texture2D(uTex, vUV).rgb;',
 '    col = tex * (0.88 + 0.22*ndl);',
 '    col += vec3(1.0) * pow(ndh, 110.0) * 0.75;',      /* glass highlight */
-'    col += vec3(0.55,0.72,1.0) * fres * 0.30;',       /* edge-on sheen    */
+'    col += vec3(0.86) * fres * 0.30;',                /* edge-on sheen    */
 '  } else {',
-'    col = env + vec3(0.16,0.16,0.18) * ndl;',
-'    col += vec3(1.0,0.96,0.90) * pow(ndh, 46.0) * 0.95;',
-'    col += vec3(0.62,0.74,0.95) * fres * 0.55;',
+'    col = env + vec3(0.17) * ndl;',
+'    col += vec3(1.0) * pow(ndh, 46.0) * 0.95;',
+'    col += vec3(0.80) * fres * 0.55;',
 '  }',
 '  gl_FragColor = vec4(col * uAlpha, uAlpha);',
 '}'].join('\n');
@@ -445,7 +448,18 @@ function init(cv, opts) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
     gl.clearColor(0, 0, 0, 0);
-    gl.disable(gl.CULL_FACE);
+    /* Backface culling is what lets the slab sort itself without the depth
+       buffer. It has to, because depth WRITES are switched off the moment the
+       phone starts fading (otherwise a half-transparent phone would go on
+       hiding the particles behind it). With no depth and no culling, the far
+       rim and the back cap draw over the front face in whatever order the
+       buffer happens to hold — the side of the phone visibly tearing open as
+       the hero scrolls away. The slab is convex, so culling alone is a
+       complete ordering: buildSlab emits every triangle counter-clockwise
+       seen from outside. */
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
+    gl.frontFace(gl.CCW);
 
     loadMark(opts.mark || '../assets/img/mark.png');
     loadPoster(opts.poster || '../assets/img/chat.webp');
