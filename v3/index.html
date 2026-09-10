@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sunday — Two and a half billion parameters. In your pocket.</title>
+<meta name="description" content="Sunday runs Google's Gemma 4 entirely on your iPhone. See photos, hear voice notes, watch videos, read PDFs. No account, no servers, no data collection.">
+<meta name="theme-color" content="#000000">
+<meta name="color-scheme" content="dark">
+
+<!-- Set before first paint. Everything below degrades to plain, readable,
+     fully-visible HTML when this never runs: the hidden-until-revealed
+     baseline and the 3D layouts are both gated on .js, so a no-script
+     visitor gets a flat document rather than a blank one. -->
+<script>document.documentElement.className+=' js'</script>
+
+<link rel="icon" href="../assets/img/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/img/icon.png">
+<link rel="preload" as="image" href="../assets/img/mark.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- The world. One WebGL canvas behind the entire document: a lit phone and
+     130,000 points that morph between six shapes as you scroll. Decorative in
+     the strict sense — every word it illustrates is in the DOM above it. -->
+<canvas id="world" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="bar">
+  <div class="bar-in">
+    <a class="brand" href="#top"><img src="../assets/img/mark.png" width="128" height="128" alt=""><span>Sunday</span></a>
+    <div class="bar-right">
+      <!-- WCAG 2.2.2: the hero video and the world both start moving on load,
+           so there is one control that stops every time-based thing at once.
+           Its label changes between Pause and Play, which is the whole state —
+           an aria-pressed on top of that would just announce it twice. -->
+      <button class="ghost" id="motionToggle" type="button" hidden>
+        <span class="ghost-dot" aria-hidden="true"></span><span id="motionLabel">Pause motion</span>
+      </button>
+      <a class="btn btn-min" href="https://apps.apple.com/us/app/sundayai/id6777877980">Get the app</a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ═══════════ 1 · hero ═══════════ -->
+<section class="ch ch-hero" id="top" data-station="hero" data-len="190">
+  <div class="pin">
+    <div class="wrap hero-in">
+      <p class="kicker r" data-r>On-device AI for iPhone</p>
+      <h1 class="r" data-r data-r-d="1">A private AI that <em>never leaves</em> your phone.</h1>
+      <p class="lede r" data-r data-r-d="2">Google's Gemma 4, running entirely on your iPhone. Ask it anything, show it a photo, play it a voice note — the model thinks on your device, not on someone's server.</p>
+      <div class="cta r" data-r data-r-d="3">
+        <a class="btn btn-fill" href="https://apps.apple.com/us/app/sundayai/id6777877980">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.05 12.53c-.02-2.2 1.8-3.26 1.88-3.31-1.02-1.5-2.61-1.71-3.18-1.73-1.35-.14-2.64.79-3.33.79-.69 0-1.75-.77-2.87-.75-1.48.02-2.84.86-3.6 2.18-1.53 2.66-.39 6.6 1.1 8.76.73 1.06 1.6 2.24 2.75 2.2 1.1-.05 1.52-.71 2.85-.71 1.33 0 1.71.71 2.87.69 1.19-.02 1.94-1.07 2.66-2.13.84-1.22 1.19-2.4 1.21-2.46-.03-.01-2.32-.89-2.34-3.53zM14.88 5.6c.61-.74 1.02-1.77.91-2.79-.88.04-1.94.59-2.57 1.32-.56.65-1.05 1.7-.92 2.7.98.08 1.98-.5 2.58-1.23z"/></svg>
+          Download on the App&nbsp;Store
+        </a>
+        <span class="micro">iPhone · No account required</span>
+      </div>
+    </div>
+    <p class="scroll-cue r" data-r data-r-d="4" aria-hidden="true"><i></i>Scroll</p>
+  </div>
+  <!-- The hero video is a texture on the WebGL phone; it is also the real,
+       reachable media element, with a real control. -->
+  <video id="heroVideo" class="offscreen" muted loop playsinline preload="auto" poster="../assets/img/chat.webp"
+         aria-label="Sunday answering a question on an iPhone with the network switched off">
+    <source src="../assets/video/hero-answer.webm" type="video/webm">
+    <source src="../assets/video/hero-answer.mp4" type="video/mp4">
+  </video>
+  <noscript><img class="fallback-shot" src="../assets/img/chat-hero.webp" alt="Sunday answering a question on an iPhone." width="640" height="1391"></noscript>
+</section>
+
+<!-- ═══════════ 2 · scale ═══════════ -->
+<section class="ch ch-copy" data-station="scale" data-len="185">
+  <div class="pin">
+    <div class="wrap copy mid">
+      <p class="kicker r" data-r>The model</p>
+      <h2 class="big r" data-r data-r-d="1">Two and a half billion parameters.<em>In your pocket.</em></h2>
+      <p class="lede r" data-r data-r-d="2">Gemma 4, quantized to four bits and run on Apple silicon through MLX. The whole thing sits in memory on the phone in your hand.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 3 · the mark ═══════════ -->
+<section class="ch ch-copy" data-station="mark" data-len="175">
+  <div class="pin">
+    <div class="wrap copy mid">
+      <p class="kicker r" data-r>Privacy</p>
+      <h2 class="big r" data-r data-r-d="1">And none of it<em>leaves.</em></h2>
+      <p class="lede r" data-r data-r-d="2">No account. No servers. No data collection. Not a promise about how your data is handled — an architecture with nothing to hand over.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 4 · capabilities corridor ═══════════ -->
+<section class="ch ch-rail" id="does" data-station="does" data-len="360">
+  <div class="pin">
+    <div class="wrap head">
+      <p class="kicker">Capabilities</p>
+      <h2 class="mid-h">Eleven things it does without phoning home.</h2>
+    </div>
+
+    <!-- Six screens strung down a corridor in real space. Scrolling flies the
+         camera through them. Without JS — or under Reduce Motion — the same
+         six become a plain, swipeable row. -->
+    <div class="rail-scene">
+      <div class="rail" id="rail">
+        <figure class="scr" data-note="Show it a photo. It tells you what's actually in there.">
+          <img src="../assets/img/see.webp" width="640" height="1391" alt="Sunday describing a cross-hatched drawing." loading="lazy" decoding="async">
+          <figcaption><b>See</b><span>Show it a photo. It tells you what's actually in there.</span></figcaption>
+        </figure>
+        <figure class="scr" data-note="Play it a recording and ask what it means.">
+          <img src="../assets/img/hear.webp" width="640" height="1391" alt="Sunday summarising a song from audio." loading="lazy" decoding="async">
+          <figcaption><b>Hear</b><span>Play it a recording and ask what it means.</span></figcaption>
+        </figure>
+        <figure class="scr" data-note="Video, sampled frame by frame, then summarised.">
+          <img src="../assets/img/watch.webp" width="640" height="1391" alt="Sunday working through a video frame by frame." loading="lazy" decoding="async">
+          <figcaption><b>Watch</b><span>Video, sampled frame by frame, then summarised.</span></figcaption>
+        </figure>
+        <figure class="scr" data-note="Hand it a PDF and ask what you need to do.">
+          <img src="../assets/img/read.webp" width="640" height="1391" alt="Sunday breaking a PDF into a checklist." loading="lazy" decoding="async">
+          <figcaption><b>Read</b><span>Hand it a PDF and ask what you need to do.</span></figcaption>
+        </figure>
+        <figure class="scr" data-note="Watch it reason through the problem, step by step.">
+          <img src="../assets/img/think.webp" width="640" height="1391" alt="Thinking Mode showing visible reasoning." loading="lazy" decoding="async">
+          <figcaption><b>Think</b><span>Watch it reason through the problem, step by step.</span></figcaption>
+        </figure>
+        <figure class="scr" data-note="Ask it anything. It answers straight away.">
+          <img src="../assets/img/chat.webp" width="640" height="1391" alt="A conversation with Sunday." loading="lazy" decoding="async">
+          <figcaption><b>Chat</b><span>Ask it anything. It answers straight away.</span></figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 5 · the stack ═══════════ -->
+<section class="ch ch-stack" id="stack" data-station="stack" data-len="220">
+  <div class="pin">
+    <div class="wrap head">
+      <p class="kicker">Under the hood</p>
+      <h2 class="mid-h">A real frontier model, quantized to fit.</h2>
+    </div>
+
+    <div class="stack-scene">
+      <div class="stack" id="stackObj">
+        <div class="lyr l1"><img src="../assets/img/chat.webp" width="640" height="1391" alt="" loading="lazy" decoding="async"><b>Interface</b></div>
+        <div class="lyr l2"><b>Gemma 4 · INT4</b><i>2.5B effective parameters</i></div>
+        <div class="lyr l3"><b>MLX on Apple silicon</b><i>Neural Engine</i></div>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <dl class="specs">
+        <div><dt>Model</dt><dd>Gemma 4 E2B (INT4)</dd></div>
+        <div><dt>Engine</dt><dd>MLX Swift</dd></div>
+        <div><dt>Parameters</dt><dd>~2.5B effective</dd></div>
+        <div><dt>Quantization</dt><dd>4-bit</dd></div>
+        <div><dt>Context</dt><dd>128K tokens</dd></div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 6 · offline ═══════════ -->
+<section class="ch ch-flat" id="offline" data-station="offline">
+  <div class="wrap">
+    <div class="film r" data-r>
+      <video id="filmVideo" muted playsinline preload="none" poster="../assets/video/hero-poster.webp"
+             aria-label="Sunday writing an answer with the network switched off">
+        <source src="../assets/video/hero.webm" type="video/webm">
+        <source src="../assets/video/hero.mp4" type="video/mp4">
+      </video>
+      <div class="film-copy">
+        <p class="kicker">Live</p>
+        <h2 class="mid-h">No upload. No spinner. It just starts writing.</h2>
+        <p class="lede">In a tunnel, on a plane, or with the radios switched off entirely.</p>
+        <button class="play" id="filmPlay" type="button">
+          <span class="play-ico" aria-hidden="true"></span><span class="play-txt">Play</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 7 · privacy ═══════════ -->
+<section class="ch ch-flat" id="privacy" data-station="privacy">
+  <div class="wrap">
+    <div class="head">
+      <p class="kicker r" data-r>How it holds up</p>
+      <h2 class="mid-h r" data-r data-r-d="1">The private version isn't a setting. It's the architecture.</h2>
+    </div>
+    <ul class="rows">
+      <li class="r" data-r><b>No account, no sign-up</b><span>There's no login screen, because there's no server holding a profile of you.</span></li>
+      <li class="r" data-r data-r-d="1"><b>Your files stay put</b><span>Photos, recordings, videos and PDFs are processed on your device. They are never uploaded for analysis.</span></li>
+      <li class="r" data-r data-r-d="2"><b>It works with no connection</b><span>The model is on your phone, so it answers anywhere the signal drops out.</span></li>
+      <li class="r" data-r data-r-d="3"><b>The internet is opt-in</b><span>Sunday can pull live results for news, scores and prices — but only when you give it permission.</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════ 8 · finale ═══════════ -->
+<section class="ch ch-end" data-station="end" data-len="150">
+  <div class="pin">
+    <div class="wrap copy mid">
+      <h2 class="big r" data-r>Knowledge for<em>the frontier.</em></h2>
+      <p class="lede r" data-r data-r-d="1">Everything runs privately, on your device, at your pace.</p>
+      <div class="cta r" data-r data-r-d="2">
+        <a class="btn btn-fill" href="https://apps.apple.com/us/app/sundayai/id6777877980">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.05 12.53c-.02-2.2 1.8-3.26 1.88-3.31-1.02-1.5-2.61-1.71-3.18-1.73-1.35-.14-2.64.79-3.33.79-.69 0-1.75-.77-2.87-.75-1.48.02-2.84.86-3.6 2.18-1.53 2.66-.39 6.6 1.1 8.76.73 1.06 1.6 2.24 2.75 2.2 1.1-.05 1.52-.71 2.85-.71 1.33 0 1.71.71 2.87.69 1.19-.02 1.94-1.07 2.66-2.13.84-1.22 1.19-2.4 1.21-2.46-.03-.01-2.32-.89-2.34-3.53zM14.88 5.6c.61-.74 1.02-1.77.91-2.79-.88.04-1.94.59-2.57 1.32-.56.65-1.05 1.7-.92 2.7.98.08 1.98-.5 2.58-1.23z"/></svg>
+          Download on the App&nbsp;Store
+        </a>
+        <span class="micro">iPhone · No account required</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <a class="brand" href="#top"><img src="../assets/img/mark.png" width="128" height="128" alt=""><span>Sunday</span></a>
+    <p class="micro">Made by Will · Gemma 4 weights under Google's Gemma Terms of Use</p>
+    <nav class="foot-links">
+      <a href="https://apps.apple.com/us/app/sundayai/id6777877980">App Store</a>
+      <a href="#privacy">Privacy</a>
+      <a href="#stack">Tech</a>
+      <a href="../index.html">Original site</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="js/world.js" defer></script>
+<script src="js/main.js" defer></script>
+</body>
+</html>

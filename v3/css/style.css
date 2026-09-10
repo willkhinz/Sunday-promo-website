@@ -1,0 +1,394 @@
+/* ============================================================================
+   Sunday v3 — "Solid State"
+   A single WebGL world behind the whole document; the DOM rides on top.
+
+   Three progressive layers, in order of what the visitor actually gets:
+     1. no JS          → a flat, fully visible, readable document. No pins,
+                         no hidden baselines, no 3D. Just the page.
+     2. JS, no motion  → same flat document, plus real controls that work.
+                         Reduce Motion lands here on purpose.
+     3. JS + motion    → sections grow scroll runways, .pin holds the scene
+                         still while the world morphs behind it, and the
+                         corridor and stack become real 3D space.
+   Layer 3 is gated entirely on html.motion, which JS adds only after it has
+   checked prefers-reduced-motion. Nothing below hides content by default.
+   ========================================================================= */
+
+:root{
+  --ink:#fff;
+  --ink-2:rgba(255,255,255,.66);        /*  7.8:1 on black  */
+  --ink-3:rgba(255,255,255,.52);        /*  5.6:1 on black  */
+  --line:rgba(255,255,255,.12);
+  --line-2:rgba(255,255,255,.2);
+  --warm:#ff9a3c;                        /*  9.9:1 on black  */
+  --cool:#5fb0ff;
+  --pane:rgba(255,255,255,.05);
+  --gut:clamp(20px,5vw,64px);
+  --max:1180px;
+  --ease:cubic-bezier(.22,.61,.36,1);
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+
+/* Deliberately no scroll-behavior:smooth. The loop already chases scroll with
+   a rate cap, and a browser-animated jump across a 15-viewport document would
+   spend a second feeding that cap positions it has to throttle — the world
+   would lag whole chapters behind the page. Anchor jumps land instantly and
+   the loop snaps to meet them. */
+html{background:#000;-webkit-text-size-adjust:100%}
+
+body{
+  margin:0;background:#000;color:var(--ink);font-family:var(--sans);
+  font-size:17px;line-height:1.5;letter-spacing:-.01em;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+}
+
+img,video,svg{display:block;max-width:100%}
+h1,h2,p,dl,dd,figure,figcaption{margin:0}
+ul,ol{margin:0;padding:0;list-style:none}
+
+.skip{
+  position:fixed;left:16px;top:-100px;z-index:99;padding:12px 18px;border-radius:12px;
+  background:#fff;color:#000;font-weight:600;text-decoration:none;transition:top .18s var(--ease);
+}
+.skip:focus-visible{top:16px}
+
+:focus-visible{outline:2px solid var(--warm);outline-offset:3px;border-radius:6px}
+
+/* ── the world ─────────────────────────────────────────────────────────── */
+
+#world{
+  position:fixed;inset:0;width:100%;height:100%;z-index:0;
+  display:block;pointer-events:none;
+  /* Hidden until the renderer has actually drawn a frame, so a failed
+     context never leaves a black rectangle sitting over the gradient. */
+  opacity:0;transition:opacity .9s var(--ease);
+}
+#world.live{opacity:1}
+
+.grain{
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:
+    radial-gradient(120% 90% at 50% 42%,transparent 38%,rgba(0,0,0,.55) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E");
+  background-size:cover,140px 140px;
+}
+
+/* ── chrome ────────────────────────────────────────────────────────────── */
+
+.bar{position:fixed;inset:0 0 auto;z-index:20;padding:14px 0;
+  background:linear-gradient(180deg,rgba(0,0,0,.72),transparent);
+  -webkit-backdrop-filter:saturate(140%) blur(14px);backdrop-filter:saturate(140%) blur(14px);
+  -webkit-mask-image:linear-gradient(180deg,#000 55%,transparent);
+          mask-image:linear-gradient(180deg,#000 55%,transparent);
+}
+.bar-in{max-width:var(--max);margin:0 auto;padding:0 var(--gut);
+  display:flex;align-items:center;justify-content:space-between;gap:16px}
+.bar-right{display:flex;align-items:center;gap:10px}
+
+/* 44px on every control, per HIG — and never below the 24px that WCAG 2.2
+   SC 2.5.8 requires. Text links inside prose are exempt; these are chrome. */
+.brand{display:inline-flex;align-items:center;gap:9px;min-height:44px;color:var(--ink);
+  text-decoration:none;font-weight:650;letter-spacing:-.02em;font-size:17px}
+.brand img{width:22px;height:22px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  min-height:44px;padding:11px 20px;border-radius:999px;font:inherit;font-weight:600;
+  text-decoration:none;border:1px solid transparent;cursor:pointer;
+  transition:transform .18s var(--ease),background-color .18s var(--ease),border-color .18s var(--ease)}
+.btn svg{width:19px;height:19px;flex:none}
+.btn-min{background:rgba(255,255,255,.1);border-color:var(--line-2);color:var(--ink);
+  padding:10px 17px;min-height:40px;font-size:15px}
+.btn-min:hover{background:rgba(255,255,255,.17)}
+.btn-fill{background:#fff;color:#000;padding:15px 26px;font-size:17px}
+.btn-fill:hover{transform:translateY(-2px);background:#f0f0f0}
+.btn-fill:active{transform:translateY(0)}
+
+.ghost{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 15px;
+  border-radius:999px;border:1px solid var(--line-2);background:rgba(255,255,255,.05);
+  color:var(--ink-2);font:inherit;font-size:14px;font-weight:550;cursor:pointer;
+  transition:color .18s var(--ease),border-color .18s var(--ease)}
+.ghost:hover{color:var(--ink);border-color:var(--line-2)}
+.ghost-dot{width:7px;height:7px;border-radius:50%;background:var(--warm);flex:none}
+.ghost[aria-pressed="true"] .ghost-dot{background:var(--ink-3)}
+
+/* ── layout ────────────────────────────────────────────────────────────── */
+
+main{position:relative;z-index:2}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 var(--gut);width:100%}
+
+.ch{position:relative}
+.pin{display:flex;flex-direction:column;justify-content:center;padding:120px 0 80px}
+.ch-flat{padding:clamp(72px,11vh,140px) 0}
+
+/* Only in motion mode do sections get a scroll runway and pin their scene.
+   The top padding is the floating bar's own height: a pinned scene is
+   centred in the viewport, not in the space left over below the bar, so
+   without it a full-height chapter puts its first line under the logo. */
+html.motion .pin{position:sticky;top:0;min-height:100svh;padding:76px 0 32px}
+html.motion .head{margin-bottom:clamp(20px,2.5vw,32px)}
+
+/* ── type ──────────────────────────────────────────────────────────────── */
+
+.kicker{font-size:13px;font-weight:650;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--warm);margin-bottom:20px}
+
+h1,.big{
+  font-size:clamp(2.7rem,9vw,8rem);line-height:.92;font-weight:700;letter-spacing:-.045em;
+  margin:0 0 26px;text-wrap:balance;
+}
+h1 em,.big em{display:block;font-style:normal;
+  background:linear-gradient(96deg,var(--warm),#fff 46%,var(--cool));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* .big is a shade smaller than h1 on purpose: in the copy chapters it shares
+   the frame with a 130k-point object, and at the hero's 9vw it simply covers
+   the thing it is describing. */
+.big{font-size:clamp(2.3rem,7.2vw,6.2rem)}
+
+.mid-h{font-size:clamp(1.85rem,4.6vw,3.6rem);line-height:1.04;font-weight:680;
+  letter-spacing:-.032em;margin:0 0 18px;text-wrap:balance}
+
+.lede{font-size:clamp(1.0625rem,1.7vw,1.4rem);line-height:1.5;color:var(--ink-2);
+  max-width:34em;letter-spacing:-.015em}
+.micro{font-size:14px;color:var(--ink-3)}
+
+.copy{max-width:920px}
+.copy.mid{text-align:center;margin-inline:auto}
+.copy.mid .lede{margin-inline:auto;text-align:center}
+.head{margin-bottom:clamp(32px,5vw,56px)}
+
+.cta{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px;margin-top:34px}
+.copy.mid .cta{justify-content:center}
+
+/* ── reveal (motion only) ──────────────────────────────────────────────── */
+
+html.motion .r{opacity:0;transform:translate3d(0,20px,0);
+  transition:opacity .7s var(--ease),transform .7s var(--ease)}
+html.motion .r[data-r-d="1"]{transition-delay:.07s}
+html.motion .r[data-r-d="2"]{transition-delay:.14s}
+html.motion .r[data-r-d="3"]{transition-delay:.21s}
+html.motion .r[data-r-d="4"]{transition-delay:.28s}
+html.motion .r.in{opacity:1;transform:none}
+
+/* ── hero ──────────────────────────────────────────────────────────────── */
+
+/* The headline is in the DOM and the phone is in WebGL, so nothing stops them
+   sharing pixels except this: on anything wide enough for the phone to park
+   beside the type, the type stops before it gets there. Below that width the
+   phone parks underneath instead, so the copy moves to the top of the pin.
+
+   The cap goes on the CHILDREN, not on .wrap. .wrap centres itself with
+   margin:0 auto, so capping the wrapper does not shorten the column — it
+   pulls the whole column into the middle of the viewport and puts the
+   headline through the phone rather than beside it. */
+.hero-in > *{max-width:820px}
+@media (min-width:760px){ .hero-in > *{max-width:55%} }
+@media (min-width:1000px){ .hero-in > *{max-width:57%} }
+@media (max-width:759px){
+  html.motion .ch-hero .pin{justify-content:flex-start;padding-top:min(15svh,108px)}
+}
+html.motion .ch-end .pin{justify-content:flex-start;padding-top:min(16svh,120px)}
+
+/* Copy chapters: the object owns the upper frame and the words sit under it,
+   which is both the better composition and the readable one — the lower band
+   is where the cloud is thinnest. The stations lift the camera to match. */
+html.motion .ch-copy .pin{justify-content:flex-end;padding-bottom:min(11svh,84px)}
+
+/* The hero video is the live texture on the WebGL phone. It stays a real,
+   decodable element — near-zero opacity rather than display:none, which would
+   stop the browser producing frames for it. */
+.offscreen{position:fixed;left:0;top:0;width:2px;height:2px;opacity:.01;
+  pointer-events:none;z-index:-1;border:0}
+
+/* No WebGL: the same video becomes the hero image, in the flow. */
+html.no-gl #heroVideo{position:relative;width:min(64vw,290px);height:auto;opacity:1;
+  z-index:auto;margin:44px 0 0;border-radius:34px;border:1px solid var(--line-2);
+  box-shadow:0 40px 90px -30px rgba(0,0,0,.9)}
+.fallback-shot{width:min(64vw,290px);margin:44px 0 0;border-radius:34px;
+  border:1px solid var(--line-2)}
+
+.scroll-cue{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);
+  display:flex;align-items:center;gap:10px;font-size:12px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-3)}
+.scroll-cue i{display:block;width:1px;height:34px;
+  background:linear-gradient(180deg,transparent,var(--ink-3))}
+html:not(.motion) .scroll-cue{display:none}
+
+/* ── capabilities corridor ─────────────────────────────────────────────── */
+
+.rail-scene{margin-top:clamp(28px,4vw,44px)}
+
+/* Default (no JS / Reduce Motion): a plain swipeable row. */
+.rail{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;
+  padding:4px var(--gut) 22px;margin:0 calc(var(--gut) * -1);
+  -webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.scr{flex:0 0 auto;width:min(62vw,236px);scroll-snap-align:center;margin:0}
+.scr img{width:100%;height:auto;aspect-ratio:640/1391;object-fit:cover;
+  border-radius:26px;border:1px solid var(--line-2);background:#0b0b0d}
+.scr figcaption{display:block;padding:16px 2px 0}
+.scr figcaption b{display:block;font-size:19px;font-weight:650;letter-spacing:-.02em}
+.scr figcaption span{display:block;margin-top:5px;font-size:14px;line-height:1.42;color:var(--ink-2)}
+
+/* Motion: the row becomes a corridor you fly through. */
+/* A card sweeping past the camera is supposed to leave the frame — that is
+   the whole gesture — so the chapter gets a proscenium instead of smaller
+   cards. overflow-x:clip (not hidden) because clip does not make this a
+   scroll container, so the sticky pin and the 3D context inside are both
+   left alone. Browsers without `clip` simply drop the line and behave as
+   before; body's overflow-x already stops the page panning either way. */
+html.motion .ch-rail .pin{overflow-x:clip;overflow-y:visible}
+
+html.motion .rail-scene{
+  position:relative;height:min(56svh,500px);margin-top:24px;
+  perspective:1000px;perspective-origin:50% 47%;
+}
+html.motion .rail{
+  position:absolute;inset:0;display:block;overflow:visible;padding:0;margin:0;
+  transform-style:preserve-3d;--cw:210px;
+}
+html.motion .scr{
+  position:absolute;left:50%;top:50%;width:var(--cw);
+  margin:0;will-change:transform,opacity;
+  transform-style:preserve-3d;backface-visibility:hidden;
+}
+html.motion .scr img{
+  box-shadow:0 30px 70px -24px rgba(0,0,0,.95),0 0 0 1px rgba(255,255,255,.16) inset;
+}
+/* The caption rides on the card rather than under it: anchored below, it
+   would fall out of the 560px stage the moment a card grew on approach, and
+   would be scaled into illegibility at the far end besides. */
+html.motion .scr figcaption{
+  position:absolute;left:0;right:0;bottom:0;padding:34px 15px 15px;
+  border-radius:0 0 26px 26px;
+  background:linear-gradient(180deg,transparent,rgba(0,0,0,.9) 58%);
+}
+html.motion .scr figcaption b{font-size:17px}
+html.motion .scr figcaption span{font-size:12.5px;line-height:1.36;color:rgba(255,255,255,.78)}
+
+/* ── the stack ─────────────────────────────────────────────────────────── */
+
+.stack-scene{margin:clamp(24px,4vw,40px) 0 clamp(36px,5vw,56px)}
+.stack{display:grid;gap:14px}
+.lyr{position:relative;padding:22px 24px;border-radius:22px;
+  border:1px solid var(--line-2);background:var(--pane);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);overflow:hidden}
+.lyr b{display:block;font-size:18px;font-weight:650;letter-spacing:-.02em}
+.lyr i{display:block;font-style:normal;margin-top:4px;font-size:14px;color:var(--ink-2)}
+.lyr img{width:74px;height:auto;aspect-ratio:640/1391;object-fit:cover;object-position:top;
+  border-radius:12px;border:1px solid var(--line);margin-bottom:14px}
+
+html.motion .stack-scene{position:relative;height:min(46svh,400px);
+  margin:24px 0 28px;perspective:1150px;perspective-origin:50% 46%}
+html.motion .stack{position:absolute;inset:0;display:block;transform-style:preserve-3d}
+/* Plates, not panels. On a black ground a 12%-alpha fill with a hairline
+   border disappears the moment perspective shrinks it, so the separated
+   layers get a real lit face and a coloured edge to tell them apart. */
+html.motion .lyr{
+  position:absolute;left:50%;top:50%;width:min(72vw,400px);margin:0;
+  transform-style:preserve-3d;will-change:transform;
+  background:linear-gradient(158deg,rgba(255,255,255,.14),rgba(255,255,255,.035) 64%);
+  border-color:rgba(255,255,255,.26);
+  box-shadow:0 40px 80px -26px rgba(0,0,0,.96),0 1px 0 rgba(255,255,255,.16) inset;
+}
+html.motion .lyr::before{
+  content:"";position:absolute;left:0;top:16px;bottom:16px;width:3px;
+  border-radius:0 3px 3px 0;background:var(--warm);
+}
+html.motion .lyr.l2::before{background:var(--cool)}
+html.motion .lyr.l3::before{background:rgba(255,255,255,.55)}
+html.motion .lyr img{position:absolute;right:18px;top:50%;margin:0;
+  transform:translateY(-50%);width:62px;border-color:var(--line-2)}
+
+.specs{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0;
+  border:1px solid var(--line);border-radius:20px;overflow:hidden;background:rgba(255,255,255,.03)}
+.specs>div{padding:16px 20px;border-right:1px solid var(--line)}
+.specs>div:last-child{border-right:0}
+.specs dt{font-size:12px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3)}
+.specs dd{margin:5px 0 0;font-size:16px;font-weight:600;letter-spacing:-.02em}
+
+/* ── offline film ──────────────────────────────────────────────────────── */
+
+.film{position:relative;border-radius:clamp(22px,3vw,34px);overflow:hidden;
+  border:1px solid var(--line-2);background:#08080a;isolation:isolate}
+.film video{width:100%;height:clamp(360px,62svh,620px);object-fit:cover;opacity:.5}
+.film-copy{position:absolute;inset:auto 0 0;padding:clamp(24px,4vw,52px);
+  background:linear-gradient(180deg,transparent,rgba(0,0,0,.86) 62%)}
+.film-copy .lede{max-width:30em}
+
+.play{display:inline-flex;align-items:center;gap:11px;min-height:44px;margin-top:22px;
+  padding:11px 20px 11px 15px;border-radius:999px;border:1px solid var(--line-2);
+  background:rgba(255,255,255,.1);color:var(--ink);font:inherit;font-size:15px;
+  font-weight:600;cursor:pointer;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  transition:background-color .18s var(--ease)}
+.play:hover{background:rgba(255,255,255,.2)}
+/* The glyph keys off .is-playing, which is set from the media element's own
+   play/pause/ended events — never from what the click was meant to do. */
+.play-ico{width:0;height:0;flex:none;margin-left:3px;
+  border-left:11px solid currentColor;border-top:7px solid transparent;border-bottom:7px solid transparent}
+.play.is-playing .play-ico{width:11px;height:13px;margin-left:0;border:0;
+  background:linear-gradient(90deg,currentColor 0 3.5px,transparent 3.5px 7.5px,currentColor 7.5px 11px)}
+
+/* ── privacy rows ──────────────────────────────────────────────────────── */
+
+.rows{border:1px solid var(--line);border-radius:22px;overflow:hidden;
+  background:rgba(255,255,255,.03)}
+.rows li{padding:22px clamp(20px,3vw,28px);border-top:1px solid var(--line)}
+.rows li:first-child{border-top:0}
+.rows b{display:block;font-size:18px;font-weight:650;letter-spacing:-.022em}
+.rows span{display:block;margin-top:6px;color:var(--ink-2);max-width:60ch}
+
+/* ── footer ────────────────────────────────────────────────────────────── */
+
+.foot{position:relative;z-index:2;border-top:1px solid var(--line);
+  padding:44px 0 60px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.9))}
+.foot-in{display:flex;flex-wrap:wrap;align-items:center;gap:16px 28px;justify-content:space-between}
+.foot-links{display:flex;flex-wrap:wrap;gap:4px 22px}
+.foot-links a{display:inline-flex;align-items:center;min-height:44px;
+  color:var(--ink-2);text-decoration:none;font-size:15px}
+.foot-links a:hover{color:var(--ink)}
+
+/* ── narrow ────────────────────────────────────────────────────────────── */
+
+/* One narrow breakpoint, shared with parkPhone() in main.js. If CSS switched
+   the copy to full width at a different threshold than the one where JS moves
+   the phone out from beside it, the band between them would put the headline
+   through the product. */
+@media (max-width:759.98px){
+  .bar-right .btn-min{display:none}
+  .copy.mid{text-align:left}
+  .copy.mid .lede{text-align:left;margin-inline:0}
+  .copy.mid .cta{justify-content:flex-start}
+  .specs>div{border-right:0;border-top:1px solid var(--line)}
+  .specs>div:first-child{border-top:0}
+  html.motion .rail-scene{height:min(56svh,470px)}
+  html.motion .stack-scene{height:min(46svh,360px)}
+  /* Below this width the phone parks in the lower half of the hero, which is
+     exactly where the cue sits — and a cue printed across the product is
+     worse than no cue. */
+  html.motion .scroll-cue{display:none}
+}
+
+/* ── increased contrast ────────────────────────────────────────────────── */
+
+@media (prefers-contrast:more){
+  :root{--ink-2:rgba(255,255,255,.86);--ink-3:rgba(255,255,255,.76);
+        --line:rgba(255,255,255,.34);--line-2:rgba(255,255,255,.5)}
+  .grain{display:none}
+  .film video{opacity:.34}
+  h1 em,.big em{background:none;-webkit-text-fill-color:currentColor;color:var(--warm)}
+}
+
+/* ── reduce motion ─────────────────────────────────────────────────────── */
+
+/* html.motion is never added when this matches, so the whole layer-3 block
+   above is already inert. This is the belt to that braces: kill transitions,
+   and stop the world canvas from drawing attention even as a still. */
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important;
+    animation-iteration-count:1!important}
+  #world{opacity:.5}
+}
