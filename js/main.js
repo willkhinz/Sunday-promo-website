@@ -158,9 +158,18 @@
        So: raise Y to push the vanishing point to ~62% (≈415px, most of the
        frame) and pull FOG in so about twenty copies share it instead of
        forty-three. The depth step is untouched, so the travel speed through
-       the column is exactly what it was. */
+       the column is exactly what it was.
+
+       ARC is deliberately small next to Y. It supplies the curve, and it
+       must not also supply the spacing: at ARC=30 over ARC0=12 it was
+       adding thirty per cent of a card across the nearest copies and
+       nothing at all past the twelfth, so the column arrived as one huge
+       card, a gap, and then a cluster of tiny ones jammed at the vanishing
+       point. Carried by the linear term instead, the step from copy to copy
+       falls off smoothly — about 11 per cent per pair all the way back —
+       and the curve is left to be a curve. */
     var TUNNEL_N = 500, TUNNEL_POOL = 64, TUNNEL_Z = 60, TUNNEL_DIR = 1,
-        TUNNEL_Y = 3.4, TUNNEL_ARC = 30, TUNNEL_ARC0 = 12,
+        TUNNEL_Y = 4.2, TUNNEL_ARC = 12, TUNNEL_ARC0 = 14,
         TUNNEL_FOG = 1300, TUNNEL_OUT = 8,
         /* Depth of field. SHARP copies stay in focus and everything behind
            them softens with distance, capped — a blur is rasterised at the
@@ -705,7 +714,13 @@
              every one of these frames is a dense screenshot, so the pair
              read as one muddy overlay rather than as two things at
              different distances. */
-          place(st, ease(appr) * Z_NEAR, 1 - span(appr, 0, .45));
+          /* .32, not .45. Two dense screenshots at half opacity on top of
+             each other read as one muddy frame, and the outgoing step is
+             the nearer and larger of the pair — over Remember's column it
+             left another step's headline legible straight through the
+             tunnel. It still passes the camera; it just stops lingering
+             half-lit while it does. */
+          place(st, ease(appr) * Z_NEAR, 1 - span(appr, 0, .32));
           if (st.move) st.move(1, st.el);
           if (st.cap) st.cap.style.opacity = '0';
           continue;
