@@ -339,6 +339,41 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   letter-spacing: -.005em;
 }
 
+/* ── hero 3D object ────────────────────────────────────────── */
+
+/* Sits above the footage and its scrim (both at z-index -1) and below the
+   copy. .hero already sets isolation:isolate, so this whole arrangement is
+   sealed inside the hero's own stacking context. */
+.hero3d {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  display: block;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .8s var(--ease);
+}
+.hero3d.is-live { opacity: 1; }
+
+/* Without this the copy would paint under a positioned canvas. */
+.hero-grid,
+.hero .proof { position: relative; z-index: 1; }
+
+/* With the object live the original screenshot keeps its exact layout box —
+   which is what places the object — and keeps its alt text in the
+   accessibility tree, and simply stops painting. The unfold animation goes
+   with it: hero3d measures that box, and an animation that rotates it through
+   62 degrees would be handing over a foreshortened target. */
+html.hero3d-on .hero-shot .phone {
+  opacity: 0;
+  transition: opacity .5s var(--ease);
+  animation: none !important;
+  transform: none !important;
+}
+html.hero3d-on .hero-shot .phone-glow { opacity: .55; }
+
 /* phone */
 
 .hero-shot {
