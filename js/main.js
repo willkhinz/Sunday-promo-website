@@ -140,14 +140,37 @@
        from the top, so it runs away upward and the copies come at you and
        leave by the bottom; -1 is that seen from underneath. It pairs with
        `perspective-origin` in the stylesheet — one decision, two files. */
+    /* Two numbers decide whether this reads as a corridor or as a stack of
+       identical title bars, and they have to be chosen together.
+
+       Y is linear in u and perspective divides by (P + Z·u), so the screen
+       offset of the u-th copy tends to a LIMIT, not to infinity:
+
+           limit = Y · P / Z          (in % of card height)
+
+       That limit is the vanishing point — every copy beyond a certain depth
+       lands inside it. At Y=1.9 and Z=60 the limit was 34.8% of a 669px
+       card: 233px. Meanwhile FOG=2600 kept 43 copies alive. Forty-three
+       copies sharing 233px is a five-pixel sliver each, so all anyone ever
+       saw was the status bar repeated down the screen, and the run looked
+       broken rather than deep.
+
+       So: raise Y to push the vanishing point to ~62% (≈415px, most of the
+       frame) and pull FOG in so about twenty copies share it instead of
+       forty-three. The depth step is untouched, so the travel speed through
+       the column is exactly what it was. */
     var TUNNEL_N = 500, TUNNEL_POOL = 64, TUNNEL_Z = 60, TUNNEL_DIR = 1,
-        TUNNEL_Y = 1.9, TUNNEL_ARC = 26, TUNNEL_ARC0 = 10,
-        TUNNEL_FOG = 2600, TUNNEL_OUT = 8,
+        TUNNEL_Y = 3.4, TUNNEL_ARC = 30, TUNNEL_ARC0 = 12,
+        TUNNEL_FOG = 1300, TUNNEL_OUT = 8,
         /* Depth of field. SHARP copies stay in focus and everything behind
            them softens with distance, capped — a blur is rasterised at the
            card's layout size however small it ends up on screen, so the
-           radius is the cost and it has to stay bounded. */
-        TUNNEL_SHARP = 2, TUNNEL_BLUR = 0.55, TUNNEL_BLUR_MAX = 7;
+           radius is the cost and it has to stay bounded.
+
+           Ramped hard on purpose: the far end of the column is where the
+           copies bunch up, and blur is what turns that bunching into haze
+           instead of into twenty legible copies of the same header. */
+        TUNNEL_SHARP = 2, TUNNEL_BLUR = 1.15, TUNNEL_BLUR_MAX = 14;
 
     (function buildTunnel() {
       var deck = $('#remember .deck', root);
@@ -158,6 +181,12 @@
         clone.querySelector('img').setAttribute('alt', '');   // one of a repeat
         deck.insertBefore(clone, card);
       }
+      /* Marks the deck as a real column rather than the single card the
+         markup ships. The stylesheet uses it to shift each copy's artwork on
+         to the conversation — right for a stack of overlapping copies, wrong
+         for the lone card that no-JS and Reduce Motion get, which should show
+         the screenshot whole. */
+      deck.classList.add('is-tunnel');
     }());
 
     var chatSvg    = $('#chatSvg', root),
@@ -503,7 +532,12 @@
           // Out of the dark at the far end; on the way out it simply leaves
           // by the edge of the frame, fading only at the very last so that
           // dropping it from painting is never something you can catch.
-          var op = d >= 0 ? 1 - clamp(d / TUNNEL_FOG, 0, 1)
+          /* Squared going away: a linear fade leaves the far copies at half
+             brightness right where they are most crowded, so the crowding is
+             what you read. Squared, they are into the dark by the time they
+             pile up, and the column ends in depth rather than in repetition. */
+          var far = clamp(d / TUNNEL_FOG, 0, 1);
+          var op = d >= 0 ? (1 - far) * (1 - far)
                           : 1 - span(-d, exit * .8, exit);
 
           set(el,'--ty',ty.toFixed(2)+'%');

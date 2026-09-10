@@ -1174,6 +1174,19 @@ html.hero3d-on .hero-shot .phone-glow { opacity: .55; }
   box-shadow: none;
 }
 
+/* The copies overlap by design, so the only part of any of them anyone ever
+   sees is a band across the top. Left at the screenshot's own top edge that
+   band is the status bar and the nav header — which is why the column read
+   as the same piece of chrome repeated thirty times into the dark, rather
+   than as a conversation held in context.
+
+   Shifting the artwork up puts the answer itself in that band. The bottom
+   this exposes is never visible: every copy but the nearest is covered by
+   the one in front, and the nearest extends well below the frame. Scoped to
+   .is-tunnel so the single card that ships in the markup — what no-JS and
+   Reduce Motion show — still reads as a whole screenshot. */
+#walk #remember .deck.is-tunnel .phone img { transform: translateY(-30%); }
+
 /* Remember's label has five hundred screens travelling through where it
    sits, so unlike the other ten it cannot just be type on black. */
 
