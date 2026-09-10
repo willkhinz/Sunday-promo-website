@@ -339,6 +339,24 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   letter-spacing: -.005em;
 }
 
+/* ── page-wide dot field ───────────────────────────────────── */
+
+/* Fixed behind the whole document. z-index:-1 puts it above the page's own
+   background and below every piece of content, so nothing needs raising to
+   sit in front of it. */
+.pagedots {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  display: block;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.2s var(--ease);
+}
+.pagedots.is-live { opacity: 1; }
+
 /* ── hero 3D object ────────────────────────────────────────── */
 
 /* Sits above the footage and its scrim (both at z-index -1) and below the
@@ -770,7 +788,10 @@ html.hero3d-on .hero-shot .phone-glow { opacity: .55; }
    .phone, and its rules must keep winning outside this section.
    ============================================================ */
 
-#walk { border-top: 1px solid var(--line); background: #000; }
+/* No background of its own. It used to repeat the body's #000, which was
+   harmless while the background was the only thing behind it — and opaque
+   over the dot field once that sits between the two. */
+#walk { border-top: 1px solid var(--line); }
 
 .walk-lead {
   padding-top: clamp(72px, 15vw, 132px);
