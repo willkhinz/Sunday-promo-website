@@ -4,10 +4,13 @@
     "cleanUrls": true,
     "ignore": [
       "firebase.json",
+      ".firebaserc",
       "**/.*",
       "**/node_modules/**",
       "assets/screenshots/**",
-      "README.md"
+      "README.md",
+      "v2/**",
+      "v3/**"
     ],
     "headers": [
       {
@@ -17,9 +20,22 @@
         ]
       },
       {
+        "source": "**/*.@(mp4|webm)",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=604800" },
+          { "key": "Accept-Ranges", "value": "bytes" }
+        ]
+      },
+      {
         "source": "**/*.@(css|js)",
         "headers": [
-          { "key": "Cache-Control", "value": "public, max-age=3600" }
+          { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+        ]
+      },
+      {
+        "source": "**/*.html",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
         ]
       }
     ]

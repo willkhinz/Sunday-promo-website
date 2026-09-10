@@ -539,11 +539,14 @@ if (hero) {
     video = document.createElement('video');
     video.muted = true; video.loop = true; video.playsInline = true;
     video.setAttribute('playsinline',''); video.preload = 'auto';
-    ['assets/video/hero-answer.webm','assets/video/hero-answer.mp4'].forEach(function (src) {
-      var s = document.createElement('source');
-      s.src = src; s.type = /webm$/.test(src) ? 'video/webm' : 'video/mp4';
-      video.appendChild(s);
-    });
+    /* H.264 only. Both of this project's portrait VP9 encodes — this clip and
+       the settings clip — fail to decode (MEDIA_ERR_DECODE in Chromium,
+       "Unable to play media" in Safari) while their MP4 siblings and the
+       landscape hero WebM all play. Source selection happens once, so a
+       browser that picks the WebM fails and never falls back. */
+    var s = document.createElement('source');
+    s.src = 'assets/video/hero-answer.mp4'; s.type = 'video/mp4';
+    video.appendChild(s);
     /* Near-zero opacity rather than display:none — a video that is not
        rendered at all does not reliably produce frames to upload. */
     video.style.cssText = 'position:fixed;left:0;top:0;width:2px;height:2px;opacity:.01;pointer-events:none;z-index:-1';
