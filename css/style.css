@@ -19,7 +19,11 @@
   --line-strong: rgba(255, 255, 255, .22);
   --fg:          #fff;
   --fg-2:        rgba(255, 255, 255, .58);
-  --fg-3:        rgba(255, 255, 255, .40);
+  /* .40 on black is 3.66:1, and every one of the eleven things wearing this
+     is body-sized text — the App Store line under the hero button, the
+     footer byline, the Gemma fineprint — so all of them failed WCAG AA's
+     4.5:1. .56 is 5.3:1 and still reads as the quietest tier on the page. */
+  --fg-3:        rgba(255, 255, 255, .56);
 
   /* SF Pro on Apple platforms, each platform's own UI face elsewhere. */
   --sans: -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto,
@@ -658,7 +662,11 @@ html.hero3d-on .hero-shot .phone-glow { opacity: .55; }
 
 .footer-meta { font-size: .87rem; color: var(--fg-3); }
 
-.footer-links { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: .87rem; color: var(--fg-2); }
+/* min-height, because at .87rem these came out 22px tall and WCAG 2.2's
+   target-size minimum is 24. inline-flex so the block sizing actually takes
+   on what are otherwise inline elements. */
+.footer-links { display: flex; flex-wrap: wrap; gap: 4px 22px; font-size: .87rem; color: var(--fg-2); }
+.footer-links a { display: inline-flex; align-items: center; min-height: 30px; }
 
 @media (hover: hover) {
   .footer-links a:hover { color: var(--fg); }
@@ -686,12 +694,18 @@ html.hero3d-on .hero-shot .phone-glow { opacity: .55; }
 
 /* ── reveal ────────────────────────────────────────────────── */
 
-.reveal {
+/* Gated on html.js, which an inline script in <head> sets before first
+   paint. Ungated, this hid all twenty-six of them at opacity 0 and only
+   main.js ever added .is-in — so with JavaScript off, or merely slow to
+   arrive, or failed, the page had 463 words in its markup and showed none
+   of them. A reveal is an enhancement; it must not be the thing standing
+   between a reader and the text. */
+html.js .reveal {
   opacity: 0;
   transform: translateY(14px);
   transition: opacity .62s var(--ease), transform .62s var(--ease);
 }
-.reveal.is-in { opacity: 1; transform: none; }
+html.js .reveal.is-in { opacity: 1; transform: none; }
 
 /* ============================================================
    larger screens

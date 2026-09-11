@@ -7,6 +7,11 @@
 <meta name="description" content="Sunday runs Google's Gemma 4 entirely on your iPhone. See photos, hear voice notes, watch videos, read PDFs. No account, no servers, no data collection.">
 <meta name="theme-color" content="#000000">
 
+<!-- Set before first paint, and the only thing that makes the reveal
+     animations safe: the hidden-until-revealed baseline in the stylesheet is
+     gated on this class, so if this never runs the page is simply a page. -->
+<script>document.documentElement.className += ' js'</script>
+
 <!-- Scrapers do not resolve relative og:image paths, and a portrait
      screenshot declared as summary_large_image gets cropped to nothing.
      Absolute URL, purpose-built 1200x630 card. -->
