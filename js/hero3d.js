@@ -78,9 +78,14 @@ function clamp(v,a,b){ return v<a?a:v>b?b:v; }
    phone: the artwork ran clean off its edges.                              */
 
 var SCR_H = 2.60, SCR_W = SCR_H * 0.4601;       /* 640:1391, exactly */
-var BEZEL = 0.042;
-var PH_H  = SCR_H + BEZEL * 2;                  /* 2.684 */
-var PH_W  = SCR_W + BEZEL * 2;                  /* 1.280 */
+/* The display carried a 0.042 bezel and sat behind a rail chamfered 0.030 in
+   from its widest point — together about 10px of frame at the size this
+   renders, which read as the artwork stopping short of the edges rather than
+   as a phone. Thinner on both counts: the display is now ~96% of the body
+   width instead of 93%, and the glass runs much closer to the rail. */
+var BEZEL = 0.025;
+var PH_H  = SCR_H + BEZEL * 2;
+var PH_W  = SCR_W + BEZEL * 2;
 var PH_D  = 0.155;
 var PH_R  = 0.218;                              /* body corner radius */
 var SCR_R = PH_R - BEZEL;
@@ -116,11 +121,11 @@ function outline(hw, hh, r, seg) {
    it, widest at the middle. That inflexion is what puts a moving highlight
    line down the side of the device instead of a flat grey band. */
 var PROFILE = [
-  { z:  0.500, r: 0.0300 },
-  { z:  0.330, r: 0.0038 },
+  { z:  0.500, r: 0.0170 },
+  { z:  0.330, r: 0.0032 },
   { z:  0.000, r: 0.0000 },
-  { z: -0.330, r: 0.0038 },
-  { z: -0.500, r: 0.0300 }
+  { z: -0.330, r: 0.0032 },
+  { z: -0.500, r: 0.0200 }
 ];
 
 var K_RAIL = 0, K_SCREEN = 1, K_BEZEL = 2, K_BACK = 3;
@@ -413,6 +418,7 @@ function makeLayer(canvas, opts) {
       catch (e) { /* a frame we cannot upload is a frame we skip */ }
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
     },
+    clear: function () { gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); },
     resize: function (w, h, fov, camZ) {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       cw = Math.max(1, w); ch = Math.max(1, h);
@@ -425,6 +431,30 @@ function makeLayer(canvas, opts) {
     frame: function (s) {
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       trs(mView, 0, 0, -s.camZ, 1);
+
+      /* Dots FIRST, so they are a backdrop and nothing else. Drawn after the
+         object they were depth-tested but additive, so every dot that happened
+         to pass in front of the phone glowed over its screen — a haze of white
+         specks across the artwork. Drawn first, the opaque object simply covers
+         them, and the field reads as depth behind it. */
+      if (s.fade > 0.004) {
+        gl.enable(gl.DEPTH_TEST); gl.depthMask(false);
+        gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);
+        gl.useProgram(ptProg.p);
+        mul(mModel, trs(mModel, s.dx, s.dy, 0, s.dscale), rotY(mA, s.dry));
+        gl.uniformMatrix4fv(ptProg.u.uProj, false, mProj);
+        gl.uniformMatrix4fv(ptProg.u.uView, false, mView);
+        gl.uniformMatrix4fv(ptProg.u.uModel, false, mModel);
+        gl.uniform1f(ptProg.u.uTime, s.time);
+        gl.uniform1f(ptProg.u.uDpr, dpr);
+        gl.uniform1f(ptProg.u.uFade, s.fade);
+        gl.uniform1f(ptProg.u.uSize, opts.dotSize);
+        gl.uniform1f(ptProg.u.uGain, opts.gain);
+        gl.uniform1f(ptProg.u.uNear, opts.near);
+        gl.uniform1f(ptProg.u.uFar, opts.far);
+        bind(ptProg,'aPos',ptBuf,3); bind(ptProg,'aSeed',seedBuf,3);
+        gl.drawArrays(gl.POINTS, 0, N);
+      }
 
       if (mesh && s.phone) {
         gl.enable(gl.DEPTH_TEST); gl.depthMask(true);
@@ -443,29 +473,6 @@ function makeLayer(canvas, opts) {
         bind(msProg,'aPos',mesh.pos,3); bind(msProg,'aNrm',mesh.nrm,3);
         bind(msProg,'aUV',mesh.uv,2);   bind(msProg,'aKind',mesh.knd,1);
         gl.drawArrays(gl.TRIANGLES, 0, mesh.count);
-      } else {
-        gl.enable(gl.DEPTH_TEST); gl.depthMask(true);
-      }
-
-      /* Dots: additive, depth-tested but not depth-written, so thousands of
-         sprites composite in any order without sorting. */
-      if (s.fade > 0.004) {
-        gl.depthMask(false);
-        gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);
-        gl.useProgram(ptProg.p);
-        mul(mModel, trs(mModel, s.dx, s.dy, 0, s.dscale), rotY(mA, s.dry));
-        gl.uniformMatrix4fv(ptProg.u.uProj, false, mProj);
-        gl.uniformMatrix4fv(ptProg.u.uView, false, mView);
-        gl.uniformMatrix4fv(ptProg.u.uModel, false, mModel);
-        gl.uniform1f(ptProg.u.uTime, s.time);
-        gl.uniform1f(ptProg.u.uDpr, dpr);
-        gl.uniform1f(ptProg.u.uFade, s.fade);
-        gl.uniform1f(ptProg.u.uSize, opts.dotSize);
-        gl.uniform1f(ptProg.u.uGain, opts.gain);
-        gl.uniform1f(ptProg.u.uNear, opts.near);
-        gl.uniform1f(ptProg.u.uFar, opts.far);
-        bind(ptProg,'aPos',ptBuf,3); bind(ptProg,'aSeed',seedBuf,3);
-        gl.drawArrays(gl.POINTS, 0, N);
       }
     }
   };
@@ -601,6 +608,7 @@ function layout() {
 
 var clock = 0, last = 0, ptX = 0, ptY = 0, wantX = 0, wantY = 0;
 var running = false, inView = true, dirty = true, fade = 0, pageFade = 0;
+var heroPainted = false;
 var st = { camZ: CAM_Z, phone: false, rx:0, ry:0, px:0, py:0, scale:1,
            dx:0, dy:0, dscale:1, dry:0, time:0, fade:0 };
 
@@ -652,6 +660,18 @@ function draw(now) {
   }
 
   /* ---- hero: the handset, plus its own denser dots ---- */
+  /* Nothing clears a canvas that has stopped being drawn. Resizing below
+     768px takes .hero-shot to display:none, so live goes false and frame()
+     is never called again — and without this the last frame stayed on screen
+     for good, a frozen phone sitting on top of the screenshot that had just
+     been restored underneath it. */
+  if (hero && !(live && fade > 0.004) && heroPainted) {
+    hero.clear();
+    heroPainted = false;
+    heroCanvas.classList.remove('is-live');
+    document.documentElement.classList.remove('hero3d-on');
+  }
+
   if (hero && live && fade > 0.004) {
     var ry = ptX * 0.42 + (reduced ? 0 : Math.sin(clock*0.24)*0.13) - 0.12;
     var rx = ptY * -0.24 + (reduced ? 0 : Math.sin(clock*0.31)*0.045);
@@ -663,6 +683,7 @@ function draw(now) {
     st.dx = place.x; st.dy = place.y; st.dscale = place.s;
     st.dry = ry*0.35 + (reduced ? 0 : clock*0.02);
     hero.frame(st);
+    heroPainted = true;
     if (!heroCanvas.classList.contains('is-live')) {
       /* The original screenshot is hidden only once a frame has genuinely
          landed. Hiding it at startup would mean anything preventing a draw
