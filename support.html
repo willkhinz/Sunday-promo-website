@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support — Sunday</title>
+    <meta name="description" content="Help, troubleshooting, and contact information for Sunday AI.">
+    <link rel="stylesheet" href="site.css">
+</head>
+<body data-bg="black" data-accent="mono">
+
+    <!-- Header / Nav -->
+    <header class="footer" style="border-top:none; border-bottom:1px solid var(--border-subtle); padding: 16px 0;">
+        <div class="section-container" style="display:flex; justify-content:space-between; align-items:center;">
+            <a href="index.html" style="font-size:1.1rem; font-weight:700; color:var(--text-primary); text-decoration:none; display:flex; align-items:center; gap:8px;">
+                <div class="chat-avatar-small" style="width:20px; height:20px;">
+                    <img src="app-icon.png" alt="Sunday Logo" class="chat-avatar-img">
+                </div>
+                <span>Sunday</span>
+            </a>
+            <a href="index.html" class="btn-secondary" style="font-size:0.8rem; padding: 6px 12px; border-radius:10px; text-decoration:none;">Back to Home</a>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <main class="section-container" style="max-width:800px; padding: 80px 24px; min-height:70vh;">
+        <h1 class="section-title" style="font-size:2.4rem; margin-bottom:8px;">Sunday Help & Support</h1>
+        <p style="color:var(--text-secondary); font-size:0.95rem; margin-bottom:48px;">Find answers to common questions or reach out to our team.</p>
+
+        <!-- Contact Cards -->
+        <section style="display:flex; flex-direction:column; gap:40px; line-height:1.75; font-size:0.95rem; color:var(--text-secondary);">
+            
+            <div style="background:var(--surface-1); border:1px solid var(--border-subtle); border-radius:16px; padding:28px; display:flex; flex-direction:column; align-items:flex-start; gap:16px;">
+                <h2 style="color:var(--text-primary); font-size:1.25rem; font-weight:600; margin:0;">Contact Support</h2>
+                <p style="margin:0;">For app assistance, reporting bugs, or general inquiries, you can email us directly. We typically respond within 24–48 hours.</p>
+                <a href="mailto:hinzwilliam52@gmail.com" class="btn-primary" style="text-decoration:none; padding:10px 20px; font-size:0.9rem; border-radius:10px; display:inline-flex; align-items:center; gap:8px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                    Email hinzwilliam52@gmail.com
+                </a>
+            </div>
+
+            <!-- FAQs -->
+            <div>
+                <h2 style="color:var(--text-primary); font-size:1.4rem; font-weight:700; margin-bottom:24px;">Frequently Asked Questions</h2>
+                
+                <div style="display:flex; flex-direction:column; gap:24px;">
+                    <div>
+                        <h3 style="color:var(--text-primary); font-size:1.05rem; font-weight:600; margin-bottom:6px;">Why is the model taking long to download?</h3>
+                        <p>The Google Gemma 4 model is approximately 3.6 GB. Depending on your Wi-Fi or cellular speed, the initial setup download can take a few minutes. Please make sure the app remains active in the foreground during the first download to prevent iOS from suspending the download task.</p>
+                    </div>
+
+                    <div style="border-top:1px solid var(--border-subtle); padding-top:20px;">
+                        <h3 style="color:var(--text-primary); font-size:1.05rem; font-weight:600; margin-bottom:6px;">Which devices are supported?</h3>
+                        <p>Sunday runs the neural network natively on your iPhone's Apple Silicon GPU. For optimal speed, we recommend iPhone 15 Pro, iPhone 16, or newer. Older devices with less than 6GB of Unified Memory (RAM) may experience slower load times or memory limitations.</p>
+                    </div>
+
+                    <div style="border-top:1px solid var(--border-subtle); padding-top:20px;">
+                        <h3 style="color:var(--text-primary); font-size:1.05rem; font-weight:600; margin-bottom:6px;">How do I delete my data?</h3>
+                        <p>Because Sunday is 100% private and offline, all data is stored strictly in your local app sandbox. You can clear your entire history by tapping "Clear History" inside the settings tab in the app, or by uninstalling the application from your iOS device.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="section-container footer-content">
+            <div class="footer-left">
+                <span class="footer-brand">Sunday</span>
+                <span class="footer-copy">&copy; 2026. Private by design.</span>
+            </div>
+            <div class="footer-right">
+                <a href="privacy.html">Privacy Policy</a>
+                <a href="terms.html">Terms of Service</a>
+                <a href="https://ai.google.dev/gemma/terms" target="_blank" rel="noopener">Gemma License</a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
