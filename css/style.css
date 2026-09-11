@@ -628,7 +628,9 @@ html.hero3d-on .hero-shot .phone-glow { opacity: .55; }
   max-width: 52ch;
 }
 
-.tech-shot { margin-top: 56px; display: flex; justify-content: center; }
+/* Nothing sits beside the copy any more, so cap the measure — full-bleed
+   across a 1200px wrap gives lines nobody wants to read. */
+.tech-copy { max-width: 68ch; }
 
 /* ── finale ────────────────────────────────────────────────── */
 
@@ -749,14 +751,16 @@ html.js .reveal.is-in { opacity: 1; transform: none; }
   }
   .claim { padding: 34px 30px; }
 
-  .tech-grid,
+  /* Tech is a single column now — its frame is gone, and left in the shared
+     two-column rule the copy would sit in a 1.1fr track with an empty .9fr
+     beside it. */
   .demo-grid {
     display: grid;
     grid-template-columns: 1.1fr .9fr;
     align-items: center;
     gap: 64px;
   }
-  .tech-shot, .demo-shot { margin-top: 0; }
+  .demo-shot { margin-top: 0; }
   /* Frame on the left, copy on the right — the opposite hand to Tech, so
      the two full-width bands do not read as the same slide twice. */
   .demo-grid { grid-template-columns: .9fr 1.1fr; }
