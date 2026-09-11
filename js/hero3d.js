@@ -128,7 +128,7 @@ var PROFILE = [
   { z: -0.500, r: 0.0200 }
 ];
 
-var K_RAIL = 0, K_SCREEN = 1, K_BEZEL = 2, K_BACK = 3;
+var K_RAIL = 0, K_SCREEN = 1, K_BEZEL = 2, K_BACK = 3, K_BUTTON = 4;
 
 function buildPhone(seg) {
   var pos = [], nrm = [], uv = [], knd = [];
@@ -204,23 +204,60 @@ function buildPhone(seg) {
   }
 
   /* ---- side buttons ---- */
+  /* Emits a quad with the normal taken from its own winding, flipping both if
+     that normal comes out pointing inward. `hint` is any vector known to face
+     outward — here, centre-of-part to centre-of-face. Hand-winding twenty
+     small faces across two mirrored sides is exactly how you end up with one
+     culled away as a hole; this cannot produce one. */
+  function quadOut(a, b, c, d, k, hint) {
+    var e1 = [b[0]-a[0], b[1]-a[1], b[2]-a[2]];
+    var e2 = [c[0]-a[0], c[1]-a[1], c[2]-a[2]];
+    var n = [e1[1]*e2[2] - e1[2]*e2[1],
+             e1[2]*e2[0] - e1[0]*e2[2],
+             e1[0]*e2[1] - e1[1]*e2[0]];
+    if (n[0]*hint[0] + n[1]*hint[1] + n[2]*hint[2] < 0) {
+      var t = b; b = d; d = t;                 /* reverse the winding … */
+      n = [-n[0], -n[1], -n[2]];               /* … and the normal with it */
+    }
+    var l = Math.hypot(n[0], n[1], n[2]) || 1;
+    quad(a, b, c, d, [n[0]/l, n[1]/l, n[2]/l], k);
+  }
+
+  /* The old button was a flat pad whose outer face carried the normal
+     [side,0,0] — the very normal the rail already has along its flat sides.
+     Same normal and same material means identical shading, so the only thing
+     separating button from body was 2.8px of edge seen almost edge-on. It had
+     no depth because nothing in the lighting could tell it was there.
+
+     Now it stands twice as proud and its edges are chamfered, so the bevel
+     catches the key light at an angle neither the pad nor the rail does and
+     draws a bright line right around the part. Its own material finishes the
+     job: a shade darker and less polished than the rail, the way a real
+     button is. */
   function button(side, y0, y1) {            /* side: +1 right, -1 left */
-    var x0 = side * PH_W/2, x1 = side * (PH_W/2 + 0.011);
-    var z0 = -PH_D*0.30, z1 = PH_D*0.30;
-    var o  = [side,0,0];
-    /* outer face, then the four small returns to the body */
-    if (side > 0) {
-      quad([x1,y0,z1],[x1,y0,z0],[x1,y1,z0],[x1,y1,z1], o, K_RAIL);
-      quad([x0,y1,z1],[x1,y1,z1],[x1,y1,z0],[x0,y1,z0], [0,1,0], K_RAIL);
-      quad([x0,y0,z0],[x1,y0,z0],[x1,y0,z1],[x0,y0,z1], [0,-1,0], K_RAIL);
-      quad([x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1], [0,0,1], K_RAIL);
-      quad([x0,y1,z0],[x1,y1,z0],[x1,y0,z0],[x0,y0,z0], [0,0,-1], K_RAIL);
-    } else {
-      quad([x1,y1,z1],[x1,y1,z0],[x1,y0,z0],[x1,y0,z1], o, K_RAIL);
-      quad([x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1], [0,1,0], K_RAIL);
-      quad([x0,y0,z1],[x1,y0,z1],[x1,y0,z0],[x0,y0,z0], [0,-1,0], K_RAIL);
-      quad([x0,y1,z1],[x1,y1,z1],[x1,y0,z1],[x0,y0,z1], [0,0,1], K_RAIL);
-      quad([x0,y0,z0],[x1,y0,z0],[x1,y1,z0],[x0,y1,z0], [0,0,-1], K_RAIL);
+    var PR = 0.024, CH = 0.010;
+    var base = side * (PH_W/2 - 0.004);      /* a touch inside, so no seam gap */
+    var top  = side * (PH_W/2 + PR);
+    var z0 = -PH_D*0.32, z1 = PH_D*0.32;
+    var ay0 = y0 + CH, ay1 = y1 - CH, az0 = z0 + CH, az1 = z1 - CH;
+
+    var face = [[ay0,az0], [ay1,az0], [ay1,az1], [ay0,az1]];
+    var skirt = [[y0,z0], [y1,z0], [y1,z1], [y0,z1]];
+    var cen = [base, (y0+y1)/2, (z0+z1)/2];
+    function hintTo(pts) {
+      var m = [0,0,0];
+      pts.forEach(function (p) { m[0]+=p[0]/pts.length; m[1]+=p[1]/pts.length; m[2]+=p[2]/pts.length; });
+      return [m[0]-cen[0], m[1]-cen[1], m[2]-cen[2]];
+    }
+
+    var o = face.map(function (p) { return [top, p[0], p[1]]; });
+    quadOut(o[0], o[1], o[2], o[3], K_BUTTON, hintTo(o));
+
+    for (var i = 0; i < 4; i++) {
+      var j = (i+1) % 4;
+      var q = [[top, face[i][0], face[i][1]], [top, face[j][0], face[j][1]],
+               [base, skirt[j][0], skirt[j][1]], [base, skirt[i][0], skirt[i][1]]];
+      quadOut(q[0], q[1], q[2], q[3], K_BUTTON, hintTo(q));
     }
   }
   button( 1,  0.30,  0.86);        /* power */
@@ -322,9 +359,15 @@ var MS_FS = [
 '    col = vec3(0.014) + vec3(0.05)*ndl;',
 '    col += vec3(1.0)*pow(ndh, 130.0)*0.75;',
 '    col += vec3(0.82)*fres*0.55;',
-'  } else {',                                             /* back */
+'  } else if (vKind < 3.5) {',                            /* back */
 '    col = mix(vec3(0.028), vec3(0.125), N.y*0.5+0.5) + vec3(0.06)*ndl;',
 '    col += vec3(0.70)*fres*0.30;',
+'  } else {',                                             /* side button */
+   /* Darker and less polished than the rail it sits on. Matching the rail
+      exactly is what made the old pad invisible. */
+'    col = env*0.52 + vec3(0.115)*ndl;',
+'    col += vec3(1.0)*pow(ndh, 26.0)*0.60;',
+'    col += vec3(0.72)*fres*0.42;',
 '  }',
 '  gl_FragColor = vec4(col, 1.0);',
 '}'].join('\n');
