@@ -611,6 +611,7 @@
         var r = s.el.getBoundingClientRect();
         s.top = r.top + sy;
         s.runway = r.height - vh;
+        s.bottom = s.top + r.height;
       });
       walkTop = steps[0].top;
       walkEnd = steps[steps.length - 1].top + steps[steps.length - 1].runway;
@@ -696,7 +697,28 @@
       activeRunway = active >= 0 ? steps[active].runway : 0;
 
       var appr = active < 0 ? 1 : span(aq, 0, APPROACH);
-      var behind = appr < 1 ? active - 1 : -1;
+
+      /* Every step but the last hands off into the one after it: the next
+         step's own top sits exactly where this one's runway ends, so the
+         instant this one stops being "on" the next is already "on" at
+         raw 0, and the pair's own fades cover the seam. Know has no next
+         step to do that — measureSteps still gives it a full extra
+         viewport of box (the trailing viewport every step reserves so the
+         overlap with its successor has room to happen in), and with
+         nothing there to become active, that viewport used to just go
+         blank the instant Know's own runway ran out: the line vanished
+         mid-scroll and the page showed nothing at all until the demo
+         section's own layout reached it. Treat that trailing viewport as
+         a finishing pass instead — the same fade any other step gets
+         while passing the camera, just driven by real scroll position
+         over that stretch rather than by a next step's approach. */
+      var lastIdx = steps.length - 1, last = steps[lastIdx];
+      var finishing = active < 0 && last.runway > 0 &&
+                      y >= last.top + last.runway && y < last.bottom;
+      var finishQ = finishing ? span(y, last.top + last.runway, last.bottom) : 0;
+
+      var behind = appr < 1 ? active - 1 : (finishing ? lastIdx : -1);
+      var fadeP = (finishing && behind === lastIdx) ? finishQ : appr;
 
       for (i = 0; i < steps.length; i++) {
         var st = steps[i];
@@ -720,7 +742,7 @@
              left another step's headline legible straight through the
              tunnel. It still passes the camera; it just stops lingering
              half-lit while it does. */
-          place(st, ease(appr) * Z_NEAR, 1 - span(appr, 0, .32));
+          place(st, ease(fadeP) * Z_NEAR, 1 - span(fadeP, 0, .32));
           if (st.move) st.move(1, st.el);
           if (st.cap) st.cap.style.opacity = '0';
           continue;
@@ -787,6 +809,19 @@
       lastT = 0;
       requestAnimationFrame(frame);
     }
+
+    /* Backgrounding a tab mid-scroll (a call, the app switcher, the phone
+       locking) pauses requestAnimationFrame while `running` is still true
+       from the in-flight chase — there is no event for "my last rAF was
+       dropped," so nothing ever flips it back. Coming back to a frozen
+       walkthrough that no longer answers to scrolling is worse than the
+       one dropped frame this costs on an ordinary tab switch: force the
+       chase to restart against wherever the reader actually is now. */
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState !== 'visible') return;
+      running = false;
+      render();
+    });
 
     return {
       render: render,
